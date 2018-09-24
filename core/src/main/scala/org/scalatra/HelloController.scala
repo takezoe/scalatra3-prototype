@@ -5,5 +5,10 @@ class HelloController extends ScalatraBase {
     println("Hello World!")
     s"Hello ${params("name")}!"
   }
+
+  get("/test/*"){
+    println(multiParams("splat"))
+    "Bello!!"
+  }
 }
 
