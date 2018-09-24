@@ -7,18 +7,36 @@ import org.http4s.dsl.Http4sDsl
 import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
 
-trait ScalatraBase {
-  private[scalatra] val actions = new ListBuffer[Action]()
+trait ScalatraBase extends ActionResultTypes {
+  private[scalatra] val actions          = new ListBuffer[Action]()
   private[scalatra] val requestHolder    = new DynamicVariable[Request[IO]](null)
   private[scalatra] val pathParamsHolder = new DynamicVariable[Map[String, Seq[String]]](null)
 
   protected def params: Map[String, String] = requestHolder.value.params ++ pathParamsHolder.value.map { case (name, values) => name -> values.head }
   protected def multiParams: Map[String, Seq[String]] = requestHolder.value.multiParams ++ pathParamsHolder.value
 
-  implicit protected val stringResultType = StringActionResultType
-
   protected def get[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
     val action = new PathAction(this, path, Method.GET, resultType.toActionResult(f))
+    registerAction(action)
+  }
+
+  protected def post[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
+    val action = new PathAction(this, path, Method.POST, resultType.toActionResult(f))
+    registerAction(action)
+  }
+
+  protected def put[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
+    val action = new PathAction(this, path, Method.PUT, resultType.toActionResult(f))
+    registerAction(action)
+  }
+
+  protected def delete[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
+    val action = new PathAction(this, path, Method.DELETE, resultType.toActionResult(f))
+    registerAction(action)
+  }
+
+  protected def head[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
+    val action = new PathAction(this, path, Method.HEAD, resultType.toActionResult(f))
     registerAction(action)
   }
 

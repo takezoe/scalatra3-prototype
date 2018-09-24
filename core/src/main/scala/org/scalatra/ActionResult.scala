@@ -19,6 +19,12 @@ trait ActionResultType[T]{
   def toActionResult(result: T): ActionResult
 }
 
+trait ActionResultTypes {
+  implicit protected val stringResultType = StringActionResultType
+  implicit protected val unitResultType = UnitActionResultType
+  implicit protected val actionResultResultType = ActionResultActionResultType
+}
+
 object StringActionResultType extends ActionResultType[String] {
   def toActionResult(result: String): ActionResult = {
     ActionResult(
@@ -26,5 +32,21 @@ object StringActionResultType extends ActionResultType[String] {
       body = fs2.Stream(result.getBytes("UTF-8"): _*),
       headers = Map("Content-Type" -> "text/plain; charset=UTF-8")
     )
+  }
+}
+
+object UnitActionResultType extends ActionResultType[Unit] {
+  def toActionResult(result: Unit): ActionResult = {
+    ActionResult(
+      status = 200,
+      body = EmptyBody,
+      headers = Map.empty
+    )
+  }
+}
+
+object ActionResultActionResultType extends ActionResultType[ActionResult] {
+  def toActionResult(result: ActionResult): ActionResult = {
+    result
   }
 }
