@@ -7,8 +7,6 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 
 import scala.collection.mutable.ListBuffer
-import org.http4s.server.blaze.BlazeBuilder
-import fs2.StreamApp
 
 trait ScalatraBase {
   private[scalatra] val actions = new ListBuffer[Action]()
@@ -16,7 +14,7 @@ trait ScalatraBase {
   implicit protected val stringResultType = StringActionResultType
 
   protected def get[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
-    val action = new PathAction(path, HttpMethod.Get, resultType.toActionResult(f))
+    val action = new PathAction(path, Method.GET, resultType.toActionResult(f))
     actions += action
   }
 }
@@ -27,6 +25,9 @@ object Http4s extends Http4sDsl[IO] {
     val service = HttpService[IO]{ case request if actions.exists(_.matches(request)) =>
       val action = actions.find(_.matches(request)).get
       val result = action.run()
+
+      println("params: " + request.params)
+
       IO.pure(result.toResponse())
     }
     service
@@ -40,16 +41,11 @@ trait Action {
   def run(): ActionResult
 }
 
-class PathAction(path: String, method: HttpMethod, f: => ActionResult) extends Action {
+class PathAction(path: String, method: Method, f: => ActionResult) extends Action {
   override def matches(request: Request[IO]): Boolean = {
     println("path: " + path)
     println("pathInfo: " + request.pathInfo)
-    path == request.pathInfo
+    method == request.method && path == request.pathInfo
   }
   override def run(): ActionResult = f
-}
-
-sealed trait HttpMethod
-object HttpMethod {
-  case object Get extends HttpMethod
 }
