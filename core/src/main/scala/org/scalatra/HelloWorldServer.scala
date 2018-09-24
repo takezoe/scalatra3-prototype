@@ -7,7 +7,7 @@ import org.http4s.server.blaze.BlazeBuilder
 class HelloController extends ScalatraBase {
   get("/hello"){
     println("Hello World!")
-    "Hello World!"
+    s"Hello ${params("name")}!"
   }
 }
 

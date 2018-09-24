@@ -7,14 +7,18 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 
 import scala.collection.mutable.ListBuffer
+import scala.util.DynamicVariable
 
 trait ScalatraBase {
   private[scalatra] val actions = new ListBuffer[Action]()
+  private[scalatra] val requestHolder = new DynamicVariable[Request[IO]](null)
+
+  protected def params: Map[String, String] = requestHolder.value.params
 
   implicit protected val stringResultType = StringActionResultType
 
   protected def get[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
-    val action = new PathAction(path, Method.GET, resultType.toActionResult(f))
+    val action = new PathAction(this, path, Method.GET, resultType.toActionResult(f))
     actions += action
   }
 }
@@ -24,7 +28,7 @@ object Http4s extends Http4sDsl[IO] {
   def buildService(actions: Seq[Action]): HttpService[IO] = {
     val service = HttpService[IO]{ case request if actions.exists(_.matches(request)) =>
       val action = actions.find(_.matches(request)).get
-      val result = action.run()
+      val result = action.run(request)
 
       println("params: " + request.params)
 
@@ -38,14 +42,18 @@ object Http4s extends Http4sDsl[IO] {
 
 trait Action {
   def matches(request: Request[IO]): Boolean
-  def run(): ActionResult
+  def run(request: Request[IO]): ActionResult
 }
 
-class PathAction(path: String, method: Method, f: => ActionResult) extends Action {
+class PathAction(instance: ScalatraBase, path: String, method: Method, f: => ActionResult) extends Action {
   override def matches(request: Request[IO]): Boolean = {
     println("path: " + path)
     println("pathInfo: " + request.pathInfo)
     method == request.method && path == request.pathInfo
   }
-  override def run(): ActionResult = f
+  override def run(request: Request[IO]): ActionResult = {
+    instance.requestHolder.withValue(request){
+      f
+    }
+  }
 }
