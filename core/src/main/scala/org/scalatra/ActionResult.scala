@@ -35,8 +35,9 @@ trait ActionResultType[T]{
  * Defines implicit instances of ActionResultType type class.
  */
 trait ActionResultTypes {
-  implicit protected val stringResultType = StringActionResultType
-  implicit protected val unitResultType = UnitActionResultType
+  implicit protected val stringResultType       = StringActionResultType
+  implicit protected val unitResultType         = UnitActionResultType
+  implicit protected val arrayBytesResultType   = ArrayByteActionResultType
   implicit protected val actionResultResultType = ActionResultActionResultType
 }
 
@@ -59,6 +60,17 @@ object UnitActionResultType extends ActionResultType[Unit] {
     )
   }
 }
+
+object ArrayByteActionResultType extends ActionResultType[Array[Byte]] {
+  def toActionResult(result: Array[Byte]): ActionResult = {
+    ActionResult(
+      status = 200,
+      body = Stream(result),
+      headers = Map("Content-Type" -> "application/octet-stream")
+    )
+  }
+}
+
 
 object ActionResultActionResultType extends ActionResultType[ActionResult] {
   def toActionResult(result: ActionResult): ActionResult = {
