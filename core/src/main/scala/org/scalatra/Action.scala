@@ -20,9 +20,6 @@ class PathAction(instance: ScalatraBase, path: String, method: Method, f: => Act
    * @return true if matches, false otherwise
    */
   override def matches(request: Request[IO]): Boolean = {
-    println("path: " + path)
-    println("pathInfo: " + request.pathInfo)
-
     if(method == request.method){
       val requestPathFragments = request.pathInfo.split("/")
       checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
@@ -48,10 +45,8 @@ class PathAction(instance: ScalatraBase, path: String, method: Method, f: => Act
    * @return the result of this action
    */
   override def run(request: Request[IO], pathParams: Map[String, Seq[String]]): ActionResult = {
-    instance.requestHolder.withValue(request){
-      instance.pathParamsHolder.withValue(pathParams){
-        f
-      }
+    instance.requestHolder.withValue(new ScalatraRequest(request, pathParams)){
+      f
     }
   }
 

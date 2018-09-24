@@ -7,14 +7,34 @@ import org.http4s.dsl.Http4sDsl
 import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
 
+class ScalatraRequest(private[scalatra] val underlying: Request[IO],
+                      private[scalatra] val pathParams: Map[String, Seq[String]]){
+
+  lazy val body = {
+    val charset = underlying.contentType.flatMap(_.charset).getOrElse(Charset.`UTF-8`)
+    new String(cachedBody, charset.nioCharset)
+  }
+
+  private lazy val cachedBody = {
+    val bytes = underlying.body.compile.fold(List.empty[Byte]) { case (acc, byte) => acc :+ byte }
+    bytes.unsafeRunSync().toArray
+  }
+}
+
 trait ScalatraBase extends ActionResultTypes {
 
-  private[scalatra] val actions          = new ListBuffer[Action]()
-  private[scalatra] val requestHolder    = new DynamicVariable[Request[IO]](null)
-  private[scalatra] val pathParamsHolder = new DynamicVariable[Map[String, Seq[String]]](null)
+  private[scalatra] val actions       = new ListBuffer[Action]()
+  private[scalatra] val requestHolder = new DynamicVariable[ScalatraRequest](null)
 
-  protected def params: Map[String, String] = requestHolder.value.params ++ pathParamsHolder.value.map { case (name, values) => name -> values.head }
-  protected def multiParams: Map[String, Seq[String]] = requestHolder.value.multiParams ++ pathParamsHolder.value
+  protected def params: Map[String, String] = {
+    requestHolder.value.underlying.params ++ requestHolder.value.pathParams.map { case (name, values) => name -> values.head }
+  }
+
+  protected def multiParams: Map[String, Seq[String]] = {
+    requestHolder.value.underlying.multiParams ++ requestHolder.value.pathParams
+  }
+
+  protected def request: ScalatraRequest = requestHolder.value
 
   protected def get[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
     val action = new PathAction(this, path, Method.GET, resultType.toActionResult(f))

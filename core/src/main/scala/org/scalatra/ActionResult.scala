@@ -15,12 +15,12 @@ case class ActionResult(
   )
 }
 
-object ActionResult {
-  def apply[T](status: Int, body: T, headers: Map[String, String])(implicit resultType: ActionResultType[T]): ActionResult = {
-    val result = resultType.toActionResult(body)
-    result.copy(status = status, headers = result.headers ++ headers)
-  }
-}
+//object ActionResult {
+//  def apply[T](status: Int, body: T, headers: Map[String, String])(implicit resultType: ActionResultType[T]): ActionResult = {
+//    val result = resultType.toActionResult(body)
+//    result.copy(status = status, headers = result.headers ++ headers)
+//  }
+//}
 
 /**
  * A type class to convert something to ActionResult.
@@ -37,8 +37,8 @@ trait ActionResultType[T]{
 trait ActionResultTypes {
   implicit protected val stringResultType       = StringActionResultType
   implicit protected val unitResultType         = UnitActionResultType
-  implicit protected val arrayBytesResultType   = ArrayByteActionResultType
   implicit protected val actionResultResultType = ActionResultActionResultType
+  implicit protected val arrayBytesResultType   = ArrayByteActionResultType
 }
 
 object StringActionResultType extends ActionResultType[String] {
@@ -65,7 +65,7 @@ object ArrayByteActionResultType extends ActionResultType[Array[Byte]] {
   def toActionResult(result: Array[Byte]): ActionResult = {
     ActionResult(
       status = 200,
-      body = Stream(result),
+      body = fs2.Stream(result: _*),
       headers = Map("Content-Type" -> "application/octet-stream")
     )
   }

@@ -11,8 +11,8 @@ class HelloController extends ScalatraBase {
     Ok("Hello!!")
   }
 
-  get("/test"){
-    ActionResult(201, "testtest", Map.empty)
+  post("/test"){
+    Ok(request.body)
   }
 }
 
