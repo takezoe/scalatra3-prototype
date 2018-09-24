@@ -15,6 +15,13 @@ case class ActionResult(
   )
 }
 
+object ActionResult {
+  def apply[T](status: Int, body: T, headers: Map[String, String])(implicit resultType: ActionResultType[T]): ActionResult = {
+    val result = resultType.toActionResult(body)
+    result.copy(status = status, headers = result.headers ++ headers)
+  }
+}
+
 trait ActionResultType[T]{
   def toActionResult(result: T): ActionResult
 }
@@ -48,5 +55,33 @@ object UnitActionResultType extends ActionResultType[Unit] {
 object ActionResultActionResultType extends ActionResultType[ActionResult] {
   def toActionResult(result: ActionResult): ActionResult = {
     result
+  }
+}
+
+object Ok {
+  def apply[T](body: T = (): Unit, headers: Map[String, String] = Map.empty)(implicit resultType: ActionResultType[T]) = {
+    val result = resultType.toActionResult(body)
+    result.copy(status = 200, headers = result.headers ++ headers)
+  }
+}
+
+object NotFound {
+  def apply[T](body: T = (): Unit, headers: Map[String, String] = Map.empty)(implicit resultType: ActionResultType[T]) = {
+    val result = resultType.toActionResult(body)
+    result.copy(status = 404, headers = result.headers ++ headers)
+  }
+}
+
+object BadRequest {
+  def apply[T](body: T = (): Unit, headers: Map[String, String] = Map.empty)(implicit resultType: ActionResultType[T]) = {
+    val result = resultType.toActionResult(body)
+    result.copy(status = 400, headers = result.headers ++ headers)
+  }
+}
+
+object InternalServerError {
+  def apply[T](body: T = (): Unit, headers: Map[String, String] = Map.empty)(implicit resultType: ActionResultType[T]) = {
+    val result = resultType.toActionResult(body)
+    result.copy(status = 500, headers = result.headers ++ headers)
   }
 }

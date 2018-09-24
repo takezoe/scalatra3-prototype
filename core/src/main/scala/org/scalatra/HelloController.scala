@@ -8,7 +8,11 @@ class HelloController extends ScalatraBase {
 
   get("/test/*"){
     println(multiParams("splat"))
-    "Bello!!"
+    Ok("Hello!!")
+  }
+
+  get("/test"){
+    ActionResult(201, "testtest", Map.empty)
   }
 }
 
