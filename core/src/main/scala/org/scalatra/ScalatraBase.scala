@@ -11,10 +11,12 @@ import org.http4s.server.blaze.BlazeBuilder
 import fs2.StreamApp
 
 trait ScalatraBase {
-  val actions = new ListBuffer[Action]()
+  private[scalatra] val actions = new ListBuffer[Action]()
 
-  def get(path: String)(f: => ActionResult) = {
-    val action = new PathAction(path, HttpMethod.Get, f)
+  implicit protected val stringResultType = StringActionResultType
+
+  protected def get[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
+    val action = new PathAction(path, HttpMethod.Get, resultType.toActionResult(f))
     actions += action
   }
 }
@@ -45,10 +47,6 @@ class PathAction(path: String, method: HttpMethod, f: => ActionResult) extends A
     path == request.pathInfo
   }
   override def run(): ActionResult = f
-}
-
-case class ActionResult(status: Int){
-  def toResponse(): Response[IO] = Response[IO](status = Status(status))
 }
 
 sealed trait HttpMethod
