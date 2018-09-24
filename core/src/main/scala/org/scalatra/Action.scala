@@ -14,7 +14,7 @@ class PathAction(instance: ScalatraBase, path: String, method: Method, f: => Act
   private val pathFragments = path.split("/")
 
   /**
-   * Tests the request path matches this action.
+   * Tests a requested path matches this action.
    *
    * @param request the request object of http4s
    * @return true if matches, false otherwise
@@ -30,7 +30,7 @@ class PathAction(instance: ScalatraBase, path: String, method: Method, f: => Act
   }
 
   /**
-   * Extracts parameters from the given path.
+   * Extracts parameters from a given requested path.
    *
    * @param request the request object of http4s
    * @return the path parameters
@@ -41,7 +41,7 @@ class PathAction(instance: ScalatraBase, path: String, method: Method, f: => Act
   }
 
   /**
-   * Runs this action with the given request and the path parameters.
+   * Runs this action with a given request and path parameters.
    *
    * @param request the request object of http4s
    * @param pathParams the path parameters

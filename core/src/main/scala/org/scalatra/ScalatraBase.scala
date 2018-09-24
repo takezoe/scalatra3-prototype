@@ -8,6 +8,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
 
 trait ScalatraBase extends ActionResultTypes {
+
   private[scalatra] val actions          = new ListBuffer[Action]()
   private[scalatra] val requestHolder    = new DynamicVariable[Request[IO]](null)
   private[scalatra] val pathParamsHolder = new DynamicVariable[Map[String, Seq[String]]](null)
@@ -47,13 +48,17 @@ trait ScalatraBase extends ActionResultTypes {
 
 object Http4s extends Http4sDsl[IO] {
 
+  /**
+   * Builds a http4s service from a Scalatra application.
+   *
+   * @param app the Scalatra application
+   * @return the http4s service
+   */
   def buildService(app: ScalatraBase): HttpService[IO] = {
     val service = HttpService[IO]{ case request if app.actions.exists(_.matches(request)) =>
-      val action = app.actions.find(_.matches(request)).get
+      val action     = app.actions.find(_.matches(request)).get
       val pathParams = action.pathParam(request)
-      println("pathParams: " + pathParams)
-
-      val result = action.run(request, pathParams)
+      val result     = action.run(request, pathParams)
       IO.pure(result.toResponse())
     }
     service
