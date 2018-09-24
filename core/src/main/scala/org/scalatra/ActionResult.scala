@@ -22,10 +22,18 @@ object ActionResult {
   }
 }
 
+/**
+ * A type class to convert something to ActionResult.
+ *
+ * @tparam T the result type of action
+ */
 trait ActionResultType[T]{
   def toActionResult(result: T): ActionResult
 }
 
+/**
+ * Defines implicit instances of ActionResultType type class.
+ */
 trait ActionResultTypes {
   implicit protected val stringResultType = StringActionResultType
   implicit protected val unitResultType = UnitActionResultType
