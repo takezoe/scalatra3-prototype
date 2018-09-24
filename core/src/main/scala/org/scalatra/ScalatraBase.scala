@@ -1,9 +1,7 @@
 package org.scalatra
 
 import cats.effect.IO
-import io.circe._
 import org.http4s._
-import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 
 import scala.collection.mutable.ListBuffer
@@ -25,9 +23,9 @@ trait ScalatraBase {
 
 object Http4s extends Http4sDsl[IO] {
 
-  def buildService(actions: Seq[Action]): HttpService[IO] = {
-    val service = HttpService[IO]{ case request if actions.exists(_.matches(request)) =>
-      val action = actions.find(_.matches(request)).get
+  def buildService(app: ScalatraBase): HttpService[IO] = {
+    val service = HttpService[IO]{ case request if app.actions.exists(_.matches(request)) =>
+      val action = app.actions.find(_.matches(request)).get
       val result = action.run(request)
 
       println("params: " + request.params)
@@ -46,11 +44,13 @@ trait Action {
 }
 
 class PathAction(instance: ScalatraBase, path: String, method: Method, f: => ActionResult) extends Action {
+
   override def matches(request: Request[IO]): Boolean = {
     println("path: " + path)
     println("pathInfo: " + request.pathInfo)
     method == request.method && path == request.pathInfo
   }
+
   override def run(request: Request[IO]): ActionResult = {
     instance.requestHolder.withValue(request){
       f
