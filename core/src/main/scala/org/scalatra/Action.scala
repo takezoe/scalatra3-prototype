@@ -6,10 +6,10 @@ import org.http4s.{Method, Request}
 trait Action {
   def matches(request: Request[IO]): Boolean
   def pathParam(request: Request[IO]): Map[String, Seq[String]]
-  def run(request: Request[IO], pathParams: Map[String, Seq[String]]): ActionResult
+  def run(request: Request[IO], pathParams: Map[String, Seq[String]]): StreamActionResult
 }
 
-class PathAction(instance: ScalatraBase, path: String, method: Method, f: => ActionResult) extends Action {
+class PathAction(instance: ScalatraBase, path: String, method: Method, f: => StreamActionResult) extends Action {
 
   private val pathFragments = path.split("/")
 
@@ -44,7 +44,7 @@ class PathAction(instance: ScalatraBase, path: String, method: Method, f: => Act
    * @param pathParams the path parameters
    * @return the result of this action
    */
-  override def run(request: Request[IO], pathParams: Map[String, Seq[String]]): ActionResult = {
+  override def run(request: Request[IO], pathParams: Map[String, Seq[String]]): StreamActionResult = {
     instance.requestHolder.withValue(new ScalatraRequest(request, pathParams)){
       f
     }

@@ -21,7 +21,7 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO],
   }
 }
 
-trait ScalatraBase extends ActionResultTypes {
+trait ScalatraBase extends ResultConverters {
 
   private[scalatra] val actions       = new ListBuffer[Action]()
   private[scalatra] val requestHolder = new DynamicVariable[ScalatraRequest](null)
@@ -36,28 +36,28 @@ trait ScalatraBase extends ActionResultTypes {
 
   protected def request: ScalatraRequest = requestHolder.value
 
-  protected def get[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
-    val action = new PathAction(this, path, Method.GET, resultType.toActionResult(f))
+  protected def get[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
+    val action = new PathAction(this, path, Method.GET, converter.convert(f))
     registerAction(action)
   }
 
-  protected def post[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
-    val action = new PathAction(this, path, Method.POST, resultType.toActionResult(f))
+  protected def post[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
+    val action = new PathAction(this, path, Method.POST, converter.convert(f))
     registerAction(action)
   }
 
-  protected def put[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
-    val action = new PathAction(this, path, Method.PUT, resultType.toActionResult(f))
+  protected def put[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
+    val action = new PathAction(this, path, Method.PUT, converter.convert(f))
     registerAction(action)
   }
 
-  protected def delete[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
-    val action = new PathAction(this, path, Method.DELETE, resultType.toActionResult(f))
+  protected def delete[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
+    val action = new PathAction(this, path, Method.DELETE, converter.convert(f))
     registerAction(action)
   }
 
-  protected def head[T](path: String)(f: => T)(implicit resultType: ActionResultType[T]) = {
-    val action = new PathAction(this, path, Method.HEAD, resultType.toActionResult(f))
+  protected def head[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
+    val action = new PathAction(this, path, Method.HEAD, converter.convert(f))
     registerAction(action)
   }
 

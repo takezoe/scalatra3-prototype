@@ -12,7 +12,7 @@ class HelloController extends ScalatraBase {
   }
 
   post("/test"){
-    Ok(request.body)
+    ActionResult(200, request.body, Map.empty)
   }
 }
 
