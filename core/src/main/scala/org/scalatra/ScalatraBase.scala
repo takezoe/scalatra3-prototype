@@ -1,5 +1,7 @@
 package org.scalatra
 
+import java.io.{ByteArrayInputStream, InputStream}
+
 import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
@@ -10,14 +12,27 @@ import scala.util.DynamicVariable
 class ScalatraRequest(private[scalatra] val underlying: Request[IO],
                       private[scalatra] val pathParams: Map[String, Seq[String]]){
 
-  lazy val body = {
+  private var cachedBody: Array[Byte] = null
+
+  lazy val body: String = {
+    if(cachedBody == null) {
+      val bytes = underlying.body.compile.fold(List.empty[Byte]) { case (acc, byte) => acc :+ byte }
+      cachedBody = bytes.unsafeRunSync().toArray
+    }
     val charset = underlying.contentType.flatMap(_.charset).getOrElse(Charset.`UTF-8`)
     new String(cachedBody, charset.nioCharset)
   }
 
-  private lazy val cachedBody = {
-    val bytes = underlying.body.compile.fold(List.empty[Byte]) { case (acc, byte) => acc :+ byte }
-    bytes.unsafeRunSync().toArray
+  lazy val queryString: String = underlying.queryString
+  lazy val contentType: Option[String] = underlying.contentType.map(_.value)
+  lazy val contentLength: Option[Long] = underlying.contentLength
+  lazy val headers: Map[String, String] = underlying.headers.map { x => x.name.toString() -> x.value }.toMap
+  def inputStream: InputStream = {
+    if(cachedBody != null) {
+      new ByteArrayInputStream(cachedBody)
+    } else {
+      ???
+    }
   }
 }
 
