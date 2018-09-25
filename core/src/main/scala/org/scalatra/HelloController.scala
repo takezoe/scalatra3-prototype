@@ -1,6 +1,14 @@
 package org.scalatra
 
 class HelloController extends ScalatraBase {
+  before {
+    println("** before **")
+  }
+
+  after {
+    println("** after **")
+  }
+
   get("/hello/:name"){
     s"Hello ${params("name")}!"
   }
@@ -11,6 +19,7 @@ class HelloController extends ScalatraBase {
   }
 
   post("/test"){
+    println("** body **")
     ActionResult(200, request.body, Map.empty)
   }
 }

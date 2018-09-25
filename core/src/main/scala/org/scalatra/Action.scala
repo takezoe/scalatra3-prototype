@@ -4,27 +4,11 @@ import cats.effect.IO
 import org.http4s.{Method, Request}
 
 trait Action {
+
+  protected val pathFragments: Array[String]
+
   def matches(request: Request[IO]): Boolean
-  def pathParam(request: Request[IO]): Map[String, Seq[String]]
   def run(request: Request[IO], pathParams: Map[String, Seq[String]]): StreamActionResult
-}
-
-class PathAction(instance: ScalatraBase, path: String, method: Method, f: => StreamActionResult) extends Action {
-
-  private val pathFragments = path.split("/")
-
-  /**
-   * Tests a requested path matches this action.
-   *
-   * @param request the request object of http4s
-   * @return true if matches, false otherwise
-   */
-  override def matches(request: Request[IO]): Boolean = {
-    if(method == request.method){
-      val requestPathFragments = request.pathInfo.split("/")
-      checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
-    } else false
-  }
 
   /**
    * Extracts parameters from a given requested path.
@@ -32,25 +16,12 @@ class PathAction(instance: ScalatraBase, path: String, method: Method, f: => Str
    * @param request the request object of http4s
    * @return the path parameters
    */
-  override def pathParam(request: Request[IO]): Map[String, Seq[String]] = {
+  def pathParam(request: Request[IO]): Map[String, Seq[String]] = {
     val requestPathFragments = request.pathInfo.split("/")
     checkPath(pathFragments, requestPathFragments, Map.empty, true)._2
   }
 
-  /**
-   * Runs this action with a given request and path parameters.
-   *
-   * @param request the request object of http4s
-   * @param pathParams the path parameters
-   * @return the result of this action
-   */
-  override def run(request: Request[IO], pathParams: Map[String, Seq[String]]): StreamActionResult = {
-    instance.requestHolder.withValue(new ScalatraRequest(request, pathParams)){
-      f
-    }
-  }
-
-  private def checkPath(pathFragments: Seq[String], requestPathFragments: Seq[String],
+  protected def checkPath(pathFragments: Seq[String], requestPathFragments: Seq[String],
     pathParams: Map[String, Seq[String]], collectPathParams: Boolean): (Boolean, Map[String, Seq[String]]) = {
     (pathFragments.headOption, requestPathFragments.headOption) match {
       case (Some(a), Some(b)) if a.startsWith(":") =>
@@ -82,10 +53,112 @@ class PathAction(instance: ScalatraBase, path: String, method: Method, f: => Str
     }
   }
 
-  private def addMultiParams(name: String, value: String, params: Map[String, Seq[String]]): Map[String, Seq[String]] = {
+  protected def addMultiParams(name: String, value: String, params: Map[String, Seq[String]]): Map[String, Seq[String]] = {
     params.get(name) match {
       case Some(x) => params ++ Map(name -> (x :+ value))
       case None    => params ++ Map(name -> Seq(value))
+    }
+  }
+}
+
+class BeforeAction(instance: ScalatraBase, path: Option[String], method: Option[Method], f: => StreamActionResult) extends Action {
+
+  override protected val pathFragments = path.map(_.split("/")).getOrElse(Array[String]())
+
+  /**
+   * Tests a requested path matches this action.
+   *
+   * @param request the request object of http4s
+   * @return true if matches, false otherwise
+   */
+  override def matches(request: Request[IO]): Boolean = {
+    if(method == None || method == Some(request.method)){
+      path match {
+        case None => true
+        case Some(path) =>
+          val requestPathFragments = request.pathInfo.split("/")
+          checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
+      }
+    } else false
+  }
+
+  /**
+   * Runs this action with a given request and path parameters.
+   *
+   * @param request the request object of http4s
+   * @param pathParams the path parameters
+   * @return the result of this action
+   */
+  override def run(request: Request[IO], pathParams: Map[String, Seq[String]]): StreamActionResult = {
+    instance.requestHolder.withValue(new ScalatraRequest(request, pathParams)){
+      f
+    }
+  }
+}
+
+
+class AfterAction(instance: ScalatraBase, path: Option[String], method: Option[Method], f: => StreamActionResult) extends Action {
+
+  override protected val pathFragments = path.map(_.split("/")).getOrElse(Array[String]())
+
+  /**
+   * Tests a requested path matches this action.
+   *
+   * @param request the request object of http4s
+   * @return true if matches, false otherwise
+   */
+  override def matches(request: Request[IO]): Boolean = {
+    if(method == None || method == Some(request.method)){
+      path match {
+        case None => true
+        case Some(path) =>
+          val requestPathFragments = request.pathInfo.split("/")
+          checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
+      }
+    } else false
+  }
+
+  /**
+   * Runs this action with a given request and path parameters.
+   *
+   * @param request the request object of http4s
+   * @param pathParams the path parameters
+   * @return the result of this action
+   */
+  override def run(request: Request[IO], pathParams: Map[String, Seq[String]]): StreamActionResult = {
+    instance.requestHolder.withValue(new ScalatraRequest(request, pathParams)){
+      f
+    }
+  }
+}
+
+class BodyAction(instance: ScalatraBase, path: String, method: Method, f: => StreamActionResult) extends Action {
+
+  override protected val pathFragments = path.split("/")
+
+  /**
+   * Tests a requested path matches this action.
+   *
+   * @param request the request object of http4s
+   * @return true if matches, false otherwise
+   */
+  override def matches(request: Request[IO]): Boolean = {
+    if(method == request.method){
+      val requestPathFragments = request.pathInfo.split("/")
+      checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
+    } else false
+  }
+
+  /**
+   * Runs this action with a given request and path parameters.
+   *
+   * @param request the request object of http4s
+   * @param pathParams the path parameters
+   * @return the result of this action
+   */
+  override def run(request: Request[IO], pathParams: Map[String, Seq[String]]): StreamActionResult = {
+    instance.requestHolder.withValue(new ScalatraRequest(request, pathParams)){
+      f
     }
   }
 }
