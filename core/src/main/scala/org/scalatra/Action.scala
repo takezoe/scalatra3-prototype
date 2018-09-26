@@ -3,6 +3,8 @@ package org.scalatra
 import cats.effect.IO
 import org.http4s.{Method, Request}
 
+import scala.util.control.ControlThrowable
+
 trait Action {
 
   protected val pathFragments: Array[String]
@@ -59,6 +61,14 @@ trait Action {
       case None    => params ++ Map(name -> Seq(value))
     }
   }
+
+  protected def runAction(f: => StreamActionResult): StreamActionResult = {
+    try {
+      f
+    } catch {
+      case _: HaltException => UnitResultConverter.convert(())
+    }
+  }
 }
 
 class BeforeAction(instance: ScalatraBase, path: Option[String], method: Option[Method], f: => StreamActionResult) extends Action {
@@ -91,7 +101,7 @@ class BeforeAction(instance: ScalatraBase, path: Option[String], method: Option[
    */
   override def run(request: Request[IO], pathParams: Map[String, Seq[String]]): StreamActionResult = {
     instance.requestHolder.withValue(new ScalatraRequest(request, pathParams)){
-      f
+      runAction(f)
     }
   }
 }
@@ -127,7 +137,7 @@ class AfterAction(instance: ScalatraBase, path: Option[String], method: Option[M
    */
   override def run(request: Request[IO], pathParams: Map[String, Seq[String]]): StreamActionResult = {
     instance.requestHolder.withValue(new ScalatraRequest(request, pathParams)){
-      f
+      runAction(f)
     }
   }
 }
@@ -158,7 +168,7 @@ class BodyAction(instance: ScalatraBase, path: String, method: Method, f: => Str
    */
   override def run(request: Request[IO], pathParams: Map[String, Seq[String]]): StreamActionResult = {
     instance.requestHolder.withValue(new ScalatraRequest(request, pathParams)){
-      f
+      runAction(f)
     }
   }
 }

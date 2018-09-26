@@ -8,7 +8,7 @@ import org.http4s.dsl.Http4sDsl
 
 import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
-import scala.util.control.NonFatal
+import scala.util.control.{ControlThrowable, NonFatal}
 
 class ScalatraRequest(private[scalatra] val underlying: Request[IO],
                       private[scalatra] val pathParams: Map[String, Seq[String]]){
@@ -37,6 +37,10 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO],
   }
 }
 
+class HaltException extends ControlThrowable
+class RedirectException(path: String) extends ControlThrowable
+class PassException extends ControlThrowable
+
 trait ScalatraBase extends ResultConverters {
 
   private[scalatra] val actions       = new ListBuffer[Action]()
@@ -50,6 +54,10 @@ trait ScalatraBase extends ResultConverters {
 
   protected def multiParams: Map[String, Seq[String]] = {
     requestHolder.value.underlying.multiParams ++ requestHolder.value.pathParams
+  }
+
+  protected def halt(): Unit = {
+    throw new HaltException()
   }
 
   protected def before(f: => Unit): Unit = {
