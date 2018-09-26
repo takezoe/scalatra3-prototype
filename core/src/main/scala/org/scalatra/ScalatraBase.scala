@@ -9,6 +9,7 @@ import org.http4s.dsl.Http4sDsl
 import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
 import scala.util.control.{ControlThrowable, NonFatal}
+import scala.util.control.Breaks
 
 class ScalatraRequest(private[scalatra] val underlying: Request[IO],
                       private[scalatra] val pathParams: Map[String, Seq[String]]){
@@ -37,13 +38,17 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO],
   }
 }
 
-class HaltException extends ControlThrowable
-class RedirectException(path: String) extends ControlThrowable
-class PassException extends ControlThrowable
+sealed trait ActionControlException
+class HaltException extends ControlThrowable with ActionControlException
+class RedirectException(path: String) extends ControlThrowable with ActionControlException
+class PassException extends ControlThrowable with ActionControlException
 
 trait ScalatraBase extends ResultConverters {
 
+
+  private[scalatra] val beforeActions = new ListBuffer[Action]()
   private[scalatra] val actions       = new ListBuffer[Action]()
+  private[scalatra] val afterActions  = new ListBuffer[Action]()
   private[scalatra] val requestHolder = new DynamicVariable[ScalatraRequest](null)
 
   protected def request: ScalatraRequest = requestHolder.value
@@ -60,53 +65,69 @@ trait ScalatraBase extends ResultConverters {
     throw new HaltException()
   }
 
+  protected def redirect(path: String): Unit = {
+    throw new RedirectException(path)
+  }
+
+  protected def pass(): Unit = {
+    throw new PassException()
+  }
+
   protected def before(f: => Unit): Unit = {
-    val action = new BeforeAction(this, None, None, unitResultConverter.convert(f))
-    registerAction(action)
+    val action = new PathAction(this, None, None, unitResultConverter.convert(f))
+    registerBeforeAction(action)
   }
 
   protected def before(path: String)(f: => Unit): Unit = {
-    val action = new BeforeAction(this, Some(path), None, unitResultConverter.convert(f))
-    registerAction(action)
+    val action = new PathAction(this, Some(path), None, unitResultConverter.convert(f))
+    registerBeforeAction(action)
   }
 
   protected def after(f: => Unit): Unit = {
-    val action = new AfterAction(this, None, None, unitResultConverter.convert(f))
-    registerAction(action)
+    val action = new PathAction(this, None, None, unitResultConverter.convert(f))
+    registerAfterAction(action)
   }
 
   protected def after(path: String)(f: => Unit): Unit = {
-    val action = new AfterAction(this, Some(path), None, unitResultConverter.convert(f))
-    registerAction(action)
+    val action = new PathAction(this, Some(path), None, unitResultConverter.convert(f))
+    registerAfterAction(action)
   }
 
   protected def get[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new BodyAction(this, path, Method.GET, converter.convert(f))
+    val action = new PathAction(this, Some(path), Some(Method.GET), converter.convert(f))
     registerAction(action)
   }
 
   protected def post[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new BodyAction(this, path, Method.POST, converter.convert(f))
+    val action = new PathAction(this, Some(path), Some(Method.POST), converter.convert(f))
     registerAction(action)
   }
 
   protected def put[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new BodyAction(this, path, Method.PUT, converter.convert(f))
+    val action = new PathAction(this, Some(path), Some(Method.PUT), converter.convert(f))
     registerAction(action)
   }
 
   protected def delete[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new BodyAction(this, path, Method.DELETE, converter.convert(f))
+    val action = new PathAction(this, Some(path), Some(Method.DELETE), converter.convert(f))
     registerAction(action)
   }
 
   protected def head[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new BodyAction(this, path, Method.HEAD, converter.convert(f))
+    val action = new PathAction(this, Some(path), Some(Method.HEAD), converter.convert(f))
     registerAction(action)
   }
 
   protected def registerAction(action: Action): Unit = {
     actions += action
+  }
+
+  protected def registerBeforeAction(action: Action): Unit = {
+    beforeActions += action
+  }
+
+  protected def registerAfterAction(action: Action): Unit = {
+    afterActions += action
   }
 }
 
@@ -119,29 +140,46 @@ object Http4s extends Http4sDsl[IO] {
    * @return the http4s service
    */
   def buildService(app: ScalatraBase): HttpService[IO] = {
-    val service = HttpService[IO]{ case request if app.actions.exists(x => x.isInstanceOf[BodyAction] && x.matches(request)) =>
+    val service = HttpService[IO]{ case request if app.actions.exists(_.matches(request)) =>
 
       // before actions
-      val beforeActions = app.actions.filter(x => x.isInstanceOf[BeforeAction] && x.matches(request))
+      val beforeActions = app.beforeActions.filter(_.matches(request))
       beforeActions.foreach { action =>
         val pathParams = action.pathParam(request)
-        println("find before: " + action)
         action.run(request, pathParams)
       }
 
       // body action
       try {
-        val action     = app.actions.find(x => x.isInstanceOf[BodyAction] && x.matches(request)).get
-        val pathParams = action.pathParam(request)
-        val result     = action.run(request, pathParams)
-        IO.pure(result.toResponse())
+        val actions = app.actions.filter(_.matches(request))
+        val b = Breaks
+        var response: IO[Response[IO]] = null
+        b.breakable {
+          actions.foreach { action =>
+            try {
+              val pathParams = action.pathParam(request)
+              val result     = action.run(request, pathParams)
+              response = IO.pure(result.toResponse())
+              if(response != null){
+                b.break
+              }
+            } catch {
+              case _: HaltException => {
+                response = IO.pure(UnitResultConverter.convert(()).toResponse())
+                b.break
+              }
+              case _: PassException => ()
+              case e: RedirectException => ???
+            }
+          }
+        }
+        response
 
       } catch {
         case NonFatal(e) => throw e
-
       } finally {
         // after actions
-        val afterActions = app.actions.filter(x => x.isInstanceOf[AfterAction] && x.matches(request))
+        val afterActions = app.afterActions.filter(_.matches(request))
         afterActions.foreach { action =>
           val pathParams = action.pathParam(request)
           action.run(request, pathParams)
