@@ -1,4 +1,6 @@
-package org.scalatra
+package org.scalatra.examples
+
+import org.scalatra.{ActionResult, Ok, ScalatraBase}
 
 class HelloController extends ScalatraBase {
   before {

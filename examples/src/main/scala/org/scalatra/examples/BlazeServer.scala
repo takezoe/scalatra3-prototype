@@ -1,8 +1,9 @@
-package org.scalatra
+package org.scalatra.examples
 
 import cats.effect.IO
 import fs2.StreamApp
 import org.http4s.server.blaze.BlazeBuilder
+import org.scalatra.Http4s
 
 object BlazeServer extends StreamApp[IO] {
   import scala.concurrent.ExecutionContext.Implicits.global
