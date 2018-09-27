@@ -144,49 +144,41 @@ object Http4s extends Http4sDsl[IO] {
 
       // before actions
       val beforeActions = app.beforeActions.filter(_.matches(request))
-      beforeActions.foreach { action =>
-        val pathParams = action.pathParam(request)
-        action.run(request, pathParams)
-      }
+      runActions(beforeActions, request)
 
       // body action
       try {
         val actions = app.actions.filter(_.matches(request))
-        val b = Breaks
-        var response: IO[Response[IO]] = null
-        b.breakable {
-          actions.foreach { action =>
-            try {
-              val pathParams = action.pathParam(request)
-              val result     = action.run(request, pathParams)
-              response = IO.pure(result.toResponse())
-              if(response != null){
-                b.break
-              }
-            } catch {
-              case _: HaltException => {
-                response = IO.pure(UnitResultConverter.convert(()).toResponse())
-                b.break
-              }
-              case _: PassException => ()
-              case e: RedirectException => ???
-            }
-          }
-        }
-        response
+        IO.pure(runActions(actions, request))
 
       } catch {
         case NonFatal(e) => throw e
       } finally {
         // after actions
         val afterActions = app.afterActions.filter(_.matches(request))
-        afterActions.foreach { action =>
-          val pathParams = action.pathParam(request)
-          action.run(request, pathParams)
-        }
+        runActions(afterActions, request)
       }
     }
     service
+  }
+
+  private def runActions(actions: Seq[Action], request: Request[IO]): Response[IO] = {
+    val result = actions.view.map { action =>
+      try {
+        val pathParams = action.pathParam(request)
+        val result     = action.run(request, pathParams)
+        Some(result.toResponse())
+      } catch {
+        case _: HaltException     => Some(UnitResultConverter.convert(()).toResponse())
+        case _: PassException     => None
+        case e: RedirectException => ???
+      }
+    }.find(_.isDefined).flatten
+
+    result match {
+      case Some(x) => x
+      case None    => org.scalatra.NotFound()(UnitResultConverter).toResponse()
+    }
   }
 
 }

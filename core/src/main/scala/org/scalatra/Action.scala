@@ -74,10 +74,15 @@ class PathAction(instance: ScalatraBase, path: Option[String], method: Option[Me
    * @return true if matches, false otherwise
    */
   override def matches(request: Request[IO]): Boolean = {
-    if(method == request.method){
-      val requestPathFragments = request.pathInfo.split("/")
-      checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
-    } else false
+    method match {
+      case Some(x) if x == request.method =>
+        val requestPathFragments = request.pathInfo.split("/")
+        checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
+      case None =>
+        val requestPathFragments = request.pathInfo.split("/")
+        checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
+      case _ => false
+    }
   }
 
   /**
