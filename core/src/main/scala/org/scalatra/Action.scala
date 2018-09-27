@@ -92,7 +92,6 @@ class PathAction(instance: ScalatraBase, path: Option[String], method: Option[Me
    * @param pathParams the path parameters
    * @return the result of this action
    * @throws HaltException when halt() is called in the action
-   * @throws RedirectException when redirect() is called in the action
    * @throws PassException when pass() is called in the action
    */
   override def run(request: Request[IO], pathParams: Map[String, Seq[String]]): StreamActionResult = {

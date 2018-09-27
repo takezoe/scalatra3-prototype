@@ -38,11 +38,9 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO],
 
 sealed trait ActionControlException
 class HaltException(val response: Response[IO]) extends ControlThrowable with ActionControlException
-//class RedirectException(path: String) extends ControlThrowable with ActionControlException
 class PassException extends ControlThrowable with ActionControlException
 
 trait ScalatraBase extends ResultConverters {
-
 
   private[scalatra] val beforeActions = new ListBuffer[Action]()
   private[scalatra] val actions       = new ListBuffer[Action]()
