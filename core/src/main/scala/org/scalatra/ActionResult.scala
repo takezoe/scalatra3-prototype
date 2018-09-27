@@ -85,6 +85,13 @@ object Ok {
   }
 }
 
+object Found {
+  def apply[T](location: String, headers: Map[String, String] = Map.empty) = {
+    val result = UnitResultConverter.convert(())
+    result.copy(status = 302, headers = result.headers ++ headers ++ Map("Location" -> location))
+  }
+}
+
 object NotFound {
   def apply[T](body: T = (): Unit, headers: Map[String, String] = Map.empty)(implicit converter: ResultConverter[T]) = {
     val result = converter.convert(body)

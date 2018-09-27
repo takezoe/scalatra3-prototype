@@ -9,7 +9,6 @@ import org.http4s.dsl.Http4sDsl
 import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
 import scala.util.control.{ControlThrowable, NonFatal}
-import scala.util.control.Breaks
 
 class ScalatraRequest(private[scalatra] val underlying: Request[IO],
                       private[scalatra] val pathParams: Map[String, Seq[String]]){
@@ -39,8 +38,8 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO],
 }
 
 sealed trait ActionControlException
-class HaltException extends ControlThrowable with ActionControlException
-class RedirectException(path: String) extends ControlThrowable with ActionControlException
+class HaltException(val response: Response[IO]) extends ControlThrowable with ActionControlException
+//class RedirectException(path: String) extends ControlThrowable with ActionControlException
 class PassException extends ControlThrowable with ActionControlException
 
 trait ScalatraBase extends ResultConverters {
@@ -61,12 +60,22 @@ trait ScalatraBase extends ResultConverters {
     requestHolder.value.underlying.multiParams ++ requestHolder.value.pathParams
   }
 
-  protected def halt(): Unit = {
-    throw new HaltException()
+  protected def halt[T](status: java.lang.Integer = null, body: T = (), headers: Map[String, String] = Map.empty)(implicit converter: ResultConverter[T]): Unit = {
+    val result = converter.convert(body)
+    val response = result.copy(
+      status  = if(status == null) result.status else status,
+      headers = result.headers ++ headers
+    ).toResponse()
+
+    throw new HaltException(response)
+  }
+
+  protected def halt(result: StreamActionResult): Unit = {
+    throw new HaltException(result.toResponse())
   }
 
   protected def redirect(path: String): Unit = {
-    throw new RedirectException(path)
+    halt(Found(path))
   }
 
   protected def pass(): Unit = {
@@ -169,9 +178,8 @@ object Http4s extends Http4sDsl[IO] {
         val result     = action.run(request, pathParams)
         Some(result.toResponse())
       } catch {
-        case _: HaltException     => Some(UnitResultConverter.convert(()).toResponse())
-        case _: PassException     => None
-        case e: RedirectException => ???
+        case e: HaltException => Some(e.response)
+        case _: PassException => None
       }
     }.find(_.isDefined).flatten
 
