@@ -1,60 +1,11 @@
 package org.scalatra
 
-import java.io._
-import java.nio.file.Files
-
-import cats.effect.IO
 import org.http4s._
 
 import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
-import scala.util.control.ControlThrowable
 
-class ScalatraRequest(private[scalatra] val underlying: Request[IO],
-                      private[scalatra] val pathParams: Map[String, Seq[String]]){
-
-  private var cachedBody: Array[Byte] = null
-
-  private def createBodyCache(): Unit = {
-    if(cachedBody == null) {
-      val bytes = underlying.body.compile.fold(List.empty[Byte]) { case (acc, byte) => acc :+ byte }
-      cachedBody = bytes.unsafeRunSync().toArray
-    }
-  }
-
-  lazy val body: String = {
-    createBodyCache()
-    val charset = underlying.contentType.flatMap(_.charset).getOrElse(Charset.`UTF-8`)
-    new String(cachedBody, charset.nioCharset)
-  }
-
-  lazy val queryString: String = underlying.queryString
-  lazy val contentType: Option[String] = underlying.contentType.map(_.value)
-  lazy val contentLength: Option[Long] = underlying.contentLength
-  lazy val headers: Map[String, String] = underlying.headers.map { x => x.name.toString() -> x.value }.toMap
-
-  def inputStream: InputStream = {
-    if(cachedBody != null) {
-      new ByteArrayInputStream(cachedBody)
-    } else {
-      underlying.contentLength match {
-        case Some(length) if length < 1024 * 1024 * 1 =>
-          createBodyCache()
-          new ByteArrayInputStream(cachedBody)
-        case _ =>
-          val tempFile = Files.createTempFile("scalatra-", ".req")
-          underlying.body.through(fs2.io.file.writeAll(tempFile)).compile.drain.unsafeRunSync()
-          Files.newInputStream(tempFile) // TODO Delete temp file?
-      }
-    }
-  }
-}
-
-sealed trait ActionControlException
-class HaltException(val response: Response[IO]) extends ControlThrowable with ActionControlException
-class PassException extends ControlThrowable with ActionControlException
-
-trait ScalatraBase extends ScalatraDsl {
+trait ScalatraBase extends ResultConverters with ActionInterruptions {
 
   private[scalatra] val beforeActions = new ListBuffer[Action]()
   private[scalatra] val actions       = new ListBuffer[Action]()
@@ -69,28 +20,6 @@ trait ScalatraBase extends ScalatraDsl {
 
   protected def multiParams: Map[String, Seq[String]] = {
     requestHolder.value.underlying.multiParams ++ requestHolder.value.pathParams
-  }
-
-  protected def halt[T](status: java.lang.Integer = null, body: T = (), headers: Map[String, String] = Map.empty)(implicit converter: ResultConverter[T]): Unit = {
-    val result = converter.convert(body)
-    val response = result.copy(
-      status  = if(status == null) result.status else status,
-      headers = result.headers ++ headers
-    ).toResponse()
-
-    throw new HaltException(response)
-  }
-
-  protected def halt(result: StreamActionResult): Unit = {
-    throw new HaltException(result.toResponse())
-  }
-
-  protected def redirect(path: String): Unit = {
-    halt(Found(path))
-  }
-
-  protected def pass(): Unit = {
-    throw new PassException()
   }
 
   protected def before(f: => Unit): Unit = {

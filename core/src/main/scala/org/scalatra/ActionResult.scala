@@ -3,8 +3,6 @@ package org.scalatra
 import cats.effect.IO
 import org.http4s._
 
-import scala.xml.{Elem, NodeSeq}
-
 case class StreamActionResult(
   status: Int,
   body: EntityBody[IO],
