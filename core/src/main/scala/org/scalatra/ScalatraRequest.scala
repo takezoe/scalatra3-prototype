@@ -12,6 +12,11 @@ import org.http4s.{Charset, Request}
 class ScalatraRequest(private[scalatra] val underlying: Request[IO],
   private[scalatra] val pathParams: Map[String, Seq[String]]){
 
+  private val attrs = new scala.collection.mutable.HashMap[String, AnyRef]()
+
+  def setAttribute(key: String, value: AnyRef): Unit = attrs.put(key, value)
+  def getAttribute(key: String): AnyRef = attrs.get(key).orNull
+
   private var cachedBody: Array[Byte] = null
 
   private def createBodyCache(): Unit = {

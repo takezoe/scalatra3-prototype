@@ -20,12 +20,22 @@ lazy val root = project.in(file("."))
   .settings(name := "scalatra3-root")
   .settings(buildSettings)
   .settings(noPublish)
-  .aggregate(core, examples)
+  .aggregate(core, forms, examples)
 
 lazy val examples = project.in(file("examples"))
   .settings(name := "scalatra3-examples")
   .settings(buildSettings)
   .settings(noPublish)
+  .dependsOn(core)
+
+lazy val json = project.in(file("json"))
+  .settings(name := "scalatra3-json")
+  .settings(buildSettings)
+  .dependsOn(core)
+
+lazy val forms = project.in(file("forms"))
+  .settings(name := "scalatra3-forms")
+  .settings(buildSettings)
   .dependsOn(core)
 
 lazy val core = project.in(file("core"))
