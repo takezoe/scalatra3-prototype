@@ -6,7 +6,7 @@ import org.http4s.dsl.Http4sDsl
 
 import scala.util.control.NonFatal
 
-object Http4sAdapter extends Http4sDsl[IO] {
+object Http4sAdapter extends Http4sDsl[IO] with ScalatraDsl {
 
   /**
    * Builds a http4s service from a Scalatra application.

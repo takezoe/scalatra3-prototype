@@ -54,7 +54,7 @@ sealed trait ActionControlException
 class HaltException(val response: Response[IO]) extends ControlThrowable with ActionControlException
 class PassException extends ControlThrowable with ActionControlException
 
-trait ScalatraBase extends ResultConverters {
+trait ScalatraBase extends ScalatraDsl {
 
   private[scalatra] val beforeActions = new ListBuffer[Action]()
   private[scalatra] val actions       = new ListBuffer[Action]()
@@ -94,22 +94,22 @@ trait ScalatraBase extends ResultConverters {
   }
 
   protected def before(f: => Unit): Unit = {
-    val action = new PathAction(this, None, None, unitResultConverter.convert(f))
+    val action = new PathAction(this, None, None, UnitResultConverter.convert(f))
     registerBeforeAction(action)
   }
 
   protected def before(path: String)(f: => Unit): Unit = {
-    val action = new PathAction(this, Some(path), None, unitResultConverter.convert(f))
+    val action = new PathAction(this, Some(path), None, UnitResultConverter.convert(f))
     registerBeforeAction(action)
   }
 
   protected def after(f: => Unit): Unit = {
-    val action = new PathAction(this, None, None, unitResultConverter.convert(f))
+    val action = new PathAction(this, None, None, UnitResultConverter.convert(f))
     registerAfterAction(action)
   }
 
   protected def after(path: String)(f: => Unit): Unit = {
-    val action = new PathAction(this, Some(path), None, unitResultConverter.convert(f))
+    val action = new PathAction(this, Some(path), None, UnitResultConverter.convert(f))
     registerAfterAction(action)
   }
 
