@@ -1,6 +1,7 @@
 package org.scalatra
 
 import java.io._
+import java.nio.file.Files
 
 import cats.effect.IO
 import org.http4s._
@@ -8,7 +9,6 @@ import org.http4s._
 import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
 import scala.util.control.ControlThrowable
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class ScalatraRequest(private[scalatra] val underlying: Request[IO],
                       private[scalatra] val pathParams: Map[String, Seq[String]]){
@@ -42,10 +42,9 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO],
           createBodyCache()
           new ByteArrayInputStream(cachedBody)
         case _ =>
-          val in = new PipedInputStream()
-          val out = new PipedOutputStream(in).asInstanceOf[OutputStream]
-          underlying.body.through(fs2.io.writeOutputStreamAsync(IO.pure(out))).compile.drain.unsafeRunSync()
-          in
+          val tempFile = Files.createTempFile("scalatra-", ".req")
+          underlying.body.through(fs2.io.file.writeAll(tempFile)).compile.drain.unsafeRunSync()
+          Files.newInputStream(tempFile) // TODO Delete temp file?
       }
     }
   }
