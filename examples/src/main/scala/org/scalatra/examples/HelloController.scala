@@ -11,6 +11,17 @@ class HelloController extends ScalatraBase {
     println("** after **")
   }
 
+  get("/"){
+    <html>
+      <head>
+        <title>Scalatra3 Example</title>
+      </head>
+      <body>
+        <h1>Scalatra3 Example</h1>
+      </body>
+    </html>
+  }
+
   get("/hello/:name"){
     s"Hello ${params("name")}!"
   }

@@ -33,10 +33,11 @@ lazy val core = project.in(file("core"))
   .settings(
     name := "scalatra3-core",
     libraryDependencies ++= Seq(
-      "org.http4s"      %% "http4s-blaze-server" % Http4sVersion,
-      "org.http4s"      %% "http4s-circe"        % Http4sVersion,
-      "org.http4s"      %% "http4s-dsl"          % Http4sVersion,
-      "org.specs2"      %% "specs2-core"         % Specs2Version % "test",
-      "ch.qos.logback"  %  "logback-classic"     % LogbackVersion
+      "org.http4s"             %% "http4s-blaze-server" % Http4sVersion,
+      "org.http4s"             %% "http4s-circe"        % Http4sVersion,
+      "org.http4s"             %% "http4s-dsl"          % Http4sVersion,
+      "org.scala-lang.modules" %% "scala-xml"           % "1.1.1",
+      "org.specs2"             %% "specs2-core"         % Specs2Version % "test",
+      "ch.qos.logback"          % "logback-classic"     % LogbackVersion
     )
   )
