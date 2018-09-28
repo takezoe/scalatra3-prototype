@@ -37,10 +37,16 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO],
     if(cachedBody != null) {
       new ByteArrayInputStream(cachedBody)
     } else {
-      val in = new PipedInputStream()
-      val out = new PipedOutputStream(in).asInstanceOf[OutputStream]
-      underlying.body.through(fs2.io.writeOutputStreamAsync(IO.pure(out))).compile.drain
-      in
+      underlying.contentLength match {
+        case Some(length) if length < 1024 * 1024 * 1 =>
+          createBodyCache()
+          new ByteArrayInputStream(cachedBody)
+        case _ =>
+          val in = new PipedInputStream()
+          val out = new PipedOutputStream(in).asInstanceOf[OutputStream]
+          underlying.body.through(fs2.io.writeOutputStreamAsync(IO.pure(out))).compile.drain.unsafeRunSync()
+          in
+      }
     }
   }
 }
