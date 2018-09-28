@@ -1,6 +1,6 @@
 package org.scalatra
 
-import java.io.{ByteArrayInputStream, InputStream}
+import java.io._
 
 import cats.effect.IO
 import org.http4s._
@@ -8,17 +8,22 @@ import org.http4s._
 import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
 import scala.util.control.ControlThrowable
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class ScalatraRequest(private[scalatra] val underlying: Request[IO],
                       private[scalatra] val pathParams: Map[String, Seq[String]]){
 
   private var cachedBody: Array[Byte] = null
 
-  lazy val body: String = {
+  private def createBodyCache(): Unit = {
     if(cachedBody == null) {
       val bytes = underlying.body.compile.fold(List.empty[Byte]) { case (acc, byte) => acc :+ byte }
       cachedBody = bytes.unsafeRunSync().toArray
     }
+  }
+
+  lazy val body: String = {
+    createBodyCache()
     val charset = underlying.contentType.flatMap(_.charset).getOrElse(Charset.`UTF-8`)
     new String(cachedBody, charset.nioCharset)
   }
@@ -27,11 +32,15 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO],
   lazy val contentType: Option[String] = underlying.contentType.map(_.value)
   lazy val contentLength: Option[Long] = underlying.contentLength
   lazy val headers: Map[String, String] = underlying.headers.map { x => x.name.toString() -> x.value }.toMap
+
   def inputStream: InputStream = {
     if(cachedBody != null) {
       new ByteArrayInputStream(cachedBody)
     } else {
-      ???
+      val in = new PipedInputStream()
+      val out = new PipedOutputStream(in).asInstanceOf[OutputStream]
+      underlying.body.through(fs2.io.writeOutputStreamAsync(IO.pure(out))).compile.drain
+      in
     }
   }
 }
