@@ -23,47 +23,47 @@ trait ScalatraBase extends ResultConverters with ActionInterruptions {
   }
 
   protected def before(f: => Unit): Unit = {
-    val action = new PathAction(this, None, None, UnitResultConverter.convert(f))
+    val action = new Action(this, None, None, UnitResultConverter.convert(f))
     registerBeforeAction(action)
   }
 
   protected def before(path: String)(f: => Unit): Unit = {
-    val action = new PathAction(this, Some(path), None, UnitResultConverter.convert(f))
+    val action = new Action(this, Some(path), None, UnitResultConverter.convert(f))
     registerBeforeAction(action)
   }
 
   protected def after(f: => Unit): Unit = {
-    val action = new PathAction(this, None, None, UnitResultConverter.convert(f))
+    val action = new Action(this, None, None, UnitResultConverter.convert(f))
     registerAfterAction(action)
   }
 
   protected def after(path: String)(f: => Unit): Unit = {
-    val action = new PathAction(this, Some(path), None, UnitResultConverter.convert(f))
+    val action = new Action(this, Some(path), None, UnitResultConverter.convert(f))
     registerAfterAction(action)
   }
 
   protected def get[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new PathAction(this, Some(path), Some(Method.GET), converter.convert(f))
+    val action = new Action(this, Some(path), Some(Method.GET), converter.convert(f))
     registerAction(action)
   }
 
   protected def post[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new PathAction(this, Some(path), Some(Method.POST), converter.convert(f))
+    val action = new Action(this, Some(path), Some(Method.POST), converter.convert(f))
     registerAction(action)
   }
 
   protected def put[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new PathAction(this, Some(path), Some(Method.PUT), converter.convert(f))
+    val action = new Action(this, Some(path), Some(Method.PUT), converter.convert(f))
     registerAction(action)
   }
 
   protected def delete[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new PathAction(this, Some(path), Some(Method.DELETE), converter.convert(f))
+    val action = new Action(this, Some(path), Some(Method.DELETE), converter.convert(f))
     registerAction(action)
   }
 
   protected def head[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new PathAction(this, Some(path), Some(Method.HEAD), converter.convert(f))
+    val action = new Action(this, Some(path), Some(Method.HEAD), converter.convert(f))
     registerAction(action)
   }
 
