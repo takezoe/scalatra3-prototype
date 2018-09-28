@@ -12,7 +12,7 @@ trait ScalatraBase extends ResultConverters with ActionInterruptions {
   private[scalatra] val afterActions  = new ListBuffer[Action]()
   private[scalatra] val requestHolder = new DynamicVariable[ScalatraRequest](null)
 
-  protected def request: ScalatraRequest = requestHolder.value
+  protected implicit def request: ScalatraRequest = requestHolder.value
 
   protected def params: Map[String, String] = {
     requestHolder.value.underlying.params ++ requestHolder.value.pathParams.map { case (name, values) => name -> values.head }

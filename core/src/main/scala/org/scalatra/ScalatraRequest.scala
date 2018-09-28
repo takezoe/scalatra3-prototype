@@ -14,8 +14,9 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO],
 
   private val attrs = new scala.collection.mutable.HashMap[String, AnyRef]()
 
-  def setAttribute(key: String, value: AnyRef): Unit = attrs.put(key, value)
-  def getAttribute(key: String): AnyRef = attrs.get(key).orNull
+  def set(key: String, value: AnyRef): Unit = attrs.put(key, value)
+  def get(key: String): Option[AnyRef] = attrs.get(key)
+  def contains(key: String): Boolean = attrs.contains(key)
 
   private var cachedBody: Array[Byte] = null
 

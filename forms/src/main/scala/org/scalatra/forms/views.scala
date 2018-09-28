@@ -63,7 +63,7 @@ object views {
    * Retrieve an error message of the specified field.
    */
   def error(name: String)(implicit request: ScalatraRequest): Option[String] = {
-    Option(request.getAttribute(RequestAttributeErrorsKey)).flatMap { errors =>
+    request.get(RequestAttributeErrorsKey).flatMap { errors =>
       errors.asInstanceOf[Seq[(String, String)]].find(_._1 == name).map(_._2)
     }
   }
@@ -72,7 +72,7 @@ object views {
    * Retrieve all error messages of the specified field.
    */
   def errors(name: String)(implicit request: ScalatraRequest): Seq[String] = {
-    Option(request.getAttribute(RequestAttributeErrorsKey)).map { errors =>
+    request.get(RequestAttributeErrorsKey).map { errors =>
       errors.asInstanceOf[Seq[(String, String)]].collect { case error if error._1 == name => error._2 }
     }.getOrElse(Nil)
   }
@@ -82,7 +82,7 @@ object views {
   }
 
   private def params(name: String)(implicit request: ScalatraRequest): Seq[String] = {
-    Option(request.getAttribute(RequestAttributeParamsKey)).flatMap { params =>
+    request.get(RequestAttributeParamsKey).flatMap { params =>
       params.asInstanceOf[Map[String, Seq[String]]].get(name)
     }.getOrElse(Nil)
   }
