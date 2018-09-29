@@ -1,18 +1,38 @@
 package org.scalatra
 
 import java.io.{ByteArrayInputStream, InputStream}
+import java.net.URLDecoder
 import java.nio.file.Files
 
 import cats.effect.IO
-import org.http4s.{Charset, Request}
+import org.http4s._
+import org.http4s.util.CaseInsensitiveString
 
 /**
  * Wrapper for the http4s's Request[IO].
  */
-class ScalatraRequest(private[scalatra] val underlying: Request[IO],
-  private[scalatra] val pathParams: Map[String, Seq[String]]){
+class ScalatraRequest(private[scalatra] val underlying: Request[IO]){
 
   private val attrs = new scala.collection.mutable.HashMap[String, AnyRef]()
+
+  lazy val formParams: Map[String, Seq[String]] = {
+    try {
+      underlying.headers.get(CaseInsensitiveString("Content-Type")).collect { case x if x.value == "application/x-www-form-urlencoded" =>
+        body.split("&").map { kv =>
+          val array = kv.split("=")
+          val key   = URLDecoder.decode(array(0), "UTF-8")
+          val value = URLDecoder.decode(array(1), "UTF-8")
+          (key -> value)
+        }.groupBy { case (key, value) =>
+          key
+        }.map { case (key, kv) =>
+          key -> kv.map(_._2).toSeq
+        }
+      }.getOrElse(Map.empty)
+    } catch {
+      case e: Exception => Map.empty
+    }
+  }
 
   def set(key: String, value: AnyRef): Unit = attrs.put(key, value)
   def get(key: String): Option[AnyRef] = attrs.get(key)

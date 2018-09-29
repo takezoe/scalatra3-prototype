@@ -10,16 +10,18 @@ trait ScalatraBase extends ResultConverters with ActionInterruptions {
   private[scalatra] val beforeActions = new ListBuffer[Action]()
   private[scalatra] val actions       = new ListBuffer[Action]()
   private[scalatra] val afterActions  = new ListBuffer[Action]()
-  private[scalatra] val requestHolder = new DynamicVariable[ScalatraRequest](null)
+
+  private[scalatra] val requestHolder   = new DynamicVariable[ScalatraRequest](null)
+  private[scalatra] val pathParamHolder = new DynamicVariable[Map[String, Seq[String]]](null)
 
   protected implicit def request: ScalatraRequest = requestHolder.value
 
   protected def params: Map[String, String] = {
-    requestHolder.value.underlying.params ++ requestHolder.value.pathParams.map { case (name, values) => name -> values.head }
+    multiParams.map { case (name, values) => name -> values.head }
   }
 
   protected def multiParams: Map[String, Seq[String]] = {
-    requestHolder.value.underlying.multiParams ++ requestHolder.value.pathParams
+    requestHolder.value.underlying.multiParams ++ requestHolder.value.formParams ++ pathParamHolder.value
   }
 
   protected def before(f: => Unit): Unit = {

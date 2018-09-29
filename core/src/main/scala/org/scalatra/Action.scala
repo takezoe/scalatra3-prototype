@@ -16,11 +16,15 @@ class Action(instance: ScalatraBase, path: Option[String], method: Option[Method
   def matches(request: Request[IO]): Boolean = {
     method match {
       case Some(x) if x == request.method =>
-        val requestPathFragments = request.pathInfo.split("/")
-        checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
+        if(pathFragments.nonEmpty){
+          val requestPathFragments = request.pathInfo.split("/")
+          checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
+        } else true
       case None =>
-        val requestPathFragments = request.pathInfo.split("/")
-        checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
+        if(pathFragments.nonEmpty){
+          val requestPathFragments = request.pathInfo.split("/")
+          checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
+        } else true
       case _ => false
     }
   }
@@ -28,15 +32,17 @@ class Action(instance: ScalatraBase, path: Option[String], method: Option[Method
   /**
    * Runs this action with a given request and path parameters.
    *
-   * @param request the request object of http4s
+   * @param request the request
    * @param pathParams the path parameters
    * @return the result of this action
    * @throws HaltException when halt() is called in the action
    * @throws PassException when pass() is called in the action
    */
-  def run(request: Request[IO], pathParams: Map[String, Seq[String]]): StreamActionResult = {
-    instance.requestHolder.withValue(new ScalatraRequest(request, pathParams)){
-      f
+  def run(request: ScalatraRequest, pathParams: Map[String, Seq[String]]): StreamActionResult = {
+    instance.requestHolder.withValue(request){
+      instance.pathParamHolder.withValue(pathParams){
+        f
+      }
     }
   }
 

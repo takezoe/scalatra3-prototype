@@ -26,7 +26,7 @@ lazy val examples = project.in(file("examples"))
   .settings(name := "scalatra3-examples")
   .settings(buildSettings)
   .settings(noPublish)
-  .dependsOn(core)
+  .dependsOn(core, forms)
 
 lazy val json = project.in(file("json"))
   .settings(name := "scalatra3-json")

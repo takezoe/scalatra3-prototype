@@ -19,12 +19,8 @@ trait I18nSupport { this: ScalatraBase =>
   import org.scalatra.i18n.I18nSupport._
 
   before {
-    if (!request.contains(LocaleKey)) {
-      request.set(LocaleKey, resolveLocale)
-    }
-    if (!request.contains(MessagesKey)) {
-      request.set(MessagesKey, provideMessages(locale))
-    }
+    request.set(LocaleKey, resolveLocale)
+    request.set(MessagesKey, provideMessages(locale))
   }
 
   def locale(implicit request: ScalatraRequest): Locale = {

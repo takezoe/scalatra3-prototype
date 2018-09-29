@@ -1,20 +1,21 @@
 package org.scalatra.forms
 
 import org.scalatra.i18n._
-import org.scalatra.ScalatraBase
+import org.scalatra.{ResultConverter, ScalatraBase, StreamActionResult}
 
 trait FormSupport { self: ScalatraBase with I18nSupport =>
 
-  protected def validate[T](form: ValueType[T])(hasErrors: Seq[(String, String)] => Any, success: T => Any): Any = {
+  protected def validate[T, R1, R2](form: ValueType[T])(hasErrors: Seq[(String, String)] => R1, success: T => R2)
+    (implicit errorsConverter: ResultConverter[R1], successConverter: ResultConverter[R2]): StreamActionResult = {
     val params = multiParams
     request.set(RequestAttributeParamsKey, params)
 
     val errors = form.validate("", params, messages)
     if (errors.isEmpty) {
-      success(form.convert("", params, messages))
+      successConverter.convert(success(form.convert("", params, messages)))
     } else {
       request.set(RequestAttributeErrorsKey, errors)
-      hasErrors(errors)
+      errorsConverter.convert(hasErrors(errors))
     }
   }
 
