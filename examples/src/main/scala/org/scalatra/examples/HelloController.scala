@@ -58,7 +58,10 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport {
 
   get("/test/*"){
     val paths: Seq[String] = multiParams("splat")
-    Ok(paths.mkString(", "))
+    Ok(
+      paths.map(x => s"<li>${x}</li>").mkString("<ul>", "\n", "</ul>"),
+      contentType = "text/html"
+    )
   }
 
   post("/test"){

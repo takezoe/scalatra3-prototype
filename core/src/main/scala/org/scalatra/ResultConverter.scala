@@ -23,7 +23,8 @@ trait ResultConverters {
       StreamActionResult(
         status = 200,
         body = fs2.Stream(result.getBytes("UTF-8"): _*),
-        headers = Map("Content-Type" -> "text/plain; charset=UTF-8")
+        contentType = "text/plain; charset=UTF-8",
+        headers = Map.empty
       )
     }
   }
@@ -43,7 +44,8 @@ trait ResultConverters {
       StreamActionResult(
         status = 200,
         body = fs2.Stream(result: _*),
-        headers = Map("Content-Type" -> "application/octet-stream")
+        contentType = "application/octet-stream",
+        headers = Map.empty
       )
     }
   }
@@ -59,7 +61,8 @@ trait ResultConverters {
       StreamActionResult(
         status = 200,
         body = fs2.Stream(result.toString().getBytes("UTF-8"): _*),
-        headers = Map("Content-Type" -> "text/html; charset=UTF-8")
+        contentType = "text/html; charset=UTF-8",
+        headers = Map.empty
       )
     }
   }
