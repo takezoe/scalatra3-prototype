@@ -7,16 +7,22 @@ case class StreamActionResult(
   status: Int,
   body: EntityBody[IO],
   headers: Map[String, String],
-  contentType: String = null
+  contentType: String = null,
+  cookies: Seq[Cookie] = Nil
 ){
-  def toResponse(): Response[IO] = Response[IO](
-    status  = Status(status),
-    body    = body,
-    headers = Headers(
-      headers.toList.map { case (name, value) => Header(name, value) } ++
-        (if(contentType != null) List(Header("Content-Type", contentType)) else List.empty)
+  def toResponse(): Response[IO] = {
+    val response = Response[IO](
+      status  = Status(status),
+      body    = body,
+      headers = Headers(
+        headers.toList.map { case (name, value) => Header(name, value) } ++
+          (if(contentType != null) List(Header("Content-Type", contentType)) else List.empty)
+      )
     )
-  )
+    cookies.foldLeft(response){ case (response, cookie) =>
+      response.addCookie(cookie)
+    }
+  }
 }
 
 object ActionResult {

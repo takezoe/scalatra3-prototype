@@ -30,7 +30,7 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO]){
         }
       }.getOrElse(Map.empty)
     } catch {
-      case e: Exception => Map.empty
+      case _: Exception => Map.empty // TODO log?
     }
   }
 

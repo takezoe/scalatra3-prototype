@@ -24,6 +24,21 @@ trait ScalatraBase extends ResultConverters with ActionInterruptions {
     requestHolder.value.underlying.multiParams ++ requestHolder.value.formParams ++ pathParamHolder.value
   }
 
+  lazy val cookies: Map[String, String] = multiCookies.map { case (name, values) => name -> values.head }
+
+  lazy val multiCookies: Map[String, Seq[String]] = {
+    val cookies = org.http4s.headers.Cookie.from(request.underlying.headers)
+    cookies.map { cookies =>
+      cookies.values.toList.map { cookie =>
+        cookie.name -> cookie
+      }.groupBy { case (name, cookie) =>
+        name
+      }.map { case (name, cookies) =>
+        name -> cookies.map(_._2.content)
+      }
+    }.getOrElse(Map.empty)
+  }
+
   protected def before(f: => Unit): Unit = {
     val action = new Action(this, None, None, UnitResultConverter.convert(f))
     registerBeforeAction(action)
