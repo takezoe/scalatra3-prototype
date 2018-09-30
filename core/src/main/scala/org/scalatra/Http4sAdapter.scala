@@ -37,10 +37,9 @@ object Http4sAdapter extends Http4sDsl[IO] with ResultConverters {
           }
 
           // Add sweet cookies
-          IO.pure(request.cookies.foldLeft(response){ case (res, (name, content)) =>
-            if(!request.requestCookies.contains(name)){
-              res.addCookie(Cookie(name, content))
-            } else res
+          IO.pure(request.cookies.sweetCookies.foldLeft(response){ case (res, (name, content)) =>
+            println(s"Sweet cookie added: ${name}=${content}")
+            res.addCookie(Cookie(name, content))
           })
       }
     }

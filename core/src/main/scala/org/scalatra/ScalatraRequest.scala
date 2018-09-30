@@ -74,17 +74,26 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO]){
     }
   }
 
-  lazy val cookies: scala.collection.mutable.Map[String, String] = {
-    scala.collection.mutable.Map(requestCookies.toSeq: _*)
+  lazy val cookies: Cookies = {
+    val requestCookies: Map[String, String] = {
+      val cookies = org.http4s.headers.Cookie.from(underlying.headers)
+      cookies.map { cookies =>
+        cookies.values.toList.map { cookie =>
+          cookie.name -> cookie.content
+        }.toMap
+      }.getOrElse(Map.empty)
+    }
+    new Cookies(requestCookies)
   }
 
-  private[scalatra] lazy val requestCookies: Map[String, String] = {
-    val cookies = org.http4s.headers.Cookie.from(underlying.headers)
-    cookies.map { cookies =>
-      cookies.values.toList.map { cookie =>
-        cookie.name -> cookie.content
-      }.toMap
-    }.getOrElse(Map.empty)
-  }
+}
+
+class Cookies(requestCookies: Map[String, String]) {
+
+  private[scalatra] val sweetCookies = scala.collection.mutable.Map[String, String]()
+
+  def get(name: String): Option[String] = sweetCookies.get(name).orElse(requestCookies.get(name))
+  def update(name: String, content: String): Unit = sweetCookies.update(name, content)
+  def put(name: String, content: String): Unit = sweetCookies.put(name, content)
 
 }

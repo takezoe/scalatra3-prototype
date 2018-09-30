@@ -24,7 +24,7 @@ trait ScalatraBase extends ResultConverters with ActionInterruptions {
     requestHolder.value.underlying.multiParams ++ requestHolder.value.formParams ++ pathParamHolder.value
   }
 
-  def cookies: scala.collection.mutable.Map[String, String] = requestHolder.value.cookies
+  def cookies: Cookies = requestHolder.value.cookies
 
   protected def before(f: => Unit): Unit = {
     val action = new Action(this, None, None, UnitResultConverter.convert(f))

@@ -68,5 +68,16 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport {
     println("** body **")
     ActionResult(200, request.body, Map.empty)
   }
+
+  get("/cookie") {
+    val previous = cookies.get("counter") match {
+      case Some(v) =>  v.toInt
+      case None    => 0
+    }
+    cookies.update("counter", (previous + 1).toString)
+    <p>
+      Hi, you have been on this page {previous} times already
+    </p>
+  }
 }
 
