@@ -2,7 +2,7 @@ package org.scalatra.i18n
 
 import java.util.Locale
 
-import org.scalatra.{ScalatraBase, ScalatraRequest}
+import org.scalatra.{ScalatraBase, ScalatraException, ScalatraRequest}
 
 object I18nSupport {
 
@@ -25,31 +25,25 @@ trait I18nSupport { this: ScalatraBase =>
 
   def locale(implicit request: ScalatraRequest): Locale = {
     if (request == null) {
-      // TODO throw new ScalatraException("There needs to be a request in scope to call locale")
-      throw new RuntimeException("There needs to be a request in scope to call locale")
-    } else {
-      request.get(LocaleKey).map(_.asInstanceOf[Locale]).orNull
+      throw new ScalatraException("There needs to be a request in scope to call locale")
     }
+    request.get(LocaleKey).map(_.asInstanceOf[Locale]).orNull
   }
 
   def userLocales(implicit request: ScalatraRequest): Array[Locale] = {
     if (request == null) {
-      // TODO throw new ScalatraException("There needs to be a request in scope to call userLocales")
-      throw new RuntimeException("There needs to be a request in scope to call userLocales")
-    } else {
-      request.get(UserLocalesKey).map(_.asInstanceOf[Array[Locale]]).orNull
+      throw new ScalatraException("There needs to be a request in scope to call userLocales")
     }
+    request.get(UserLocalesKey).map(_.asInstanceOf[Array[Locale]]).orNull
   }
 
   def messages(key: String)(implicit request: ScalatraRequest): String = messages(request)(key)
 
   def messages(implicit request: ScalatraRequest): Messages = {
     if (request == null) {
-      // TODO throw new ScalatraException("There needs to be a request in scope to call messages")
-      throw new RuntimeException("There needs to be a request in scope to call messages")
-    } else {
-      request.get(MessagesKey).map(_.asInstanceOf[Messages]).orNull
+      new ScalatraException("There needs to be a request in scope to call messages")
     }
+    request.get(MessagesKey).map(_.asInstanceOf[Messages]).orNull
   }
 
   /**
