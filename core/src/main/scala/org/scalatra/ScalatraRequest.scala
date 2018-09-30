@@ -73,4 +73,18 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO]){
       }
     }
   }
+
+  lazy val cookies: scala.collection.mutable.Map[String, String] = {
+    scala.collection.mutable.Map(requestCookies.toSeq: _*)
+  }
+
+  private[scalatra] lazy val requestCookies: Map[String, String] = {
+    val cookies = org.http4s.headers.Cookie.from(underlying.headers)
+    cookies.map { cookies =>
+      cookies.values.toList.map { cookie =>
+        cookie.name -> cookie.content
+      }.toMap
+    }.getOrElse(Map.empty)
+  }
+
 }

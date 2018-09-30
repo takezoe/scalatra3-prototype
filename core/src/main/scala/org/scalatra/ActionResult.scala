@@ -19,6 +19,7 @@ case class StreamActionResult(
           (if(contentType != null) List(Header("Content-Type", contentType)) else List.empty)
       )
     )
+    // Add bitter cookies
     cookies.foldLeft(response){ case (response, cookie) =>
       response.addCookie(cookie)
     }

@@ -25,9 +25,9 @@ object Http4sAdapter extends Http4sDsl[IO] with ResultConverters {
         case Some(res) => IO.pure(res)
         // when before actions return nothing then run body action
         case None =>
-          try {
+          val response = try {
             val actions = app.actions.reverse.filter(_.matches(req))
-            IO.pure(runActions(actions, request))
+            runActions(actions, request)
           } catch {
             case NonFatal(e) => throw e
           } finally {
@@ -35,6 +35,13 @@ object Http4sAdapter extends Http4sDsl[IO] with ResultConverters {
             val afterActions = app.afterActions.reverse.filter(_.matches(req))
             runAllActions(afterActions, request)
           }
+
+          // Add sweet cookies
+          IO.pure(request.cookies.foldLeft(response){ case (res, (name, content)) =>
+            if(!request.requestCookies.contains(name)){
+              res.addCookie(Cookie(name, content))
+            } else res
+          })
       }
     }
     service
