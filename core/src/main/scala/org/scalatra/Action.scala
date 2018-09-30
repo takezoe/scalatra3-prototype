@@ -5,7 +5,15 @@ import org.http4s.{Method, Request}
 
 class Action(instance: ScalatraBase, path: Option[String], method: Option[Method], f: => StreamActionResult) {
 
-  protected val pathFragments = path.map(_.split("/")).getOrElse(Array.empty)
+  protected val pathFragments = path.map(splitPath).getOrElse(Seq.empty)
+
+  private def splitPath(path: String): Seq[String] = {
+    if(path == "/"){
+      Seq("")
+    } else {
+      path.split("/")
+    }
+  }
 
   /**
    * Tests a requested path matches this action.
@@ -17,12 +25,12 @@ class Action(instance: ScalatraBase, path: Option[String], method: Option[Method
     method match {
       case Some(x) if x == request.method =>
         if(pathFragments.nonEmpty){
-          val requestPathFragments = request.pathInfo.split("/")
+          val requestPathFragments = splitPath(request.pathInfo)
           checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
         } else true
       case None =>
         if(pathFragments.nonEmpty){
-          val requestPathFragments = request.pathInfo.split("/")
+          val requestPathFragments = splitPath(request.pathInfo)
           checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
         } else true
       case _ => false
