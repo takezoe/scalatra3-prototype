@@ -3,8 +3,9 @@ package org.scalatra.examples
 import org.scalatra._
 import org.scalatra.forms._
 import org.scalatra.i18n.I18nSupport
+import org.scalatra.twirl.TwirlSupport
 
-class HelloController extends ScalatraBase with FormSupport with I18nSupport {
+class HelloController extends ScalatraBase with FormSupport with I18nSupport with TwirlSupport {
 
   case class LoginForm(
     id: String,
@@ -50,6 +51,10 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport {
         Ok(s"Hello ${form.id}!")
       }
     )
+  }
+
+  get("/twirl"){
+    html.hello(new java.util.Date)
   }
 
   get("/hello/:name"){

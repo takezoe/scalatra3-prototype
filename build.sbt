@@ -26,7 +26,8 @@ lazy val examples = project.in(file("examples"))
   .settings(name := "scalatra3-examples")
   .settings(buildSettings)
   .settings(noPublish)
-  .dependsOn(core, forms)
+  .dependsOn(core, forms, twirl)
+  .enablePlugins(SbtTwirl)
 
 lazy val json = project.in(file("json"))
   .settings(name := "scalatra3-json")
@@ -35,6 +36,16 @@ lazy val json = project.in(file("json"))
 
 lazy val forms = project.in(file("forms"))
   .settings(name := "scalatra3-forms")
+  .settings(buildSettings)
+  .dependsOn(core)
+
+lazy val twirl = project.in(file("twirl"))
+  .settings(
+    name := "scalatra3-twirl",
+    libraryDependencies ++= Seq(
+      "com.typesafe.play" % "twirl-api_2.12" % "1.3.15"
+    )
+  )
   .settings(buildSettings)
   .dependsOn(core)
 
