@@ -1,5 +1,8 @@
 package org.scalatra
 
+import java.io.{File, FileInputStream, InputStream}
+
+import cats.effect.IO
 import org.http4s.EmptyBody
 
 import scala.xml.Elem
@@ -63,6 +66,28 @@ trait ResultConverters {
         body = fs2.Stream(result.toString().getBytes("UTF-8"): _*),
         contentType = "text/html; charset=UTF-8",
         headers = Map.empty
+      )
+    }
+  }
+
+  implicit object InputStreamResultConverter extends ResultConverter[InputStream] {
+    def convert(result: InputStream): StreamActionResult = {
+      StreamActionResult(
+        status = 200,
+        body = fs2.io.readInputStream(IO.pure(result), 1024 * 8),
+        contentType = "application/octet-stream",
+        headers = Map.empty
+      )
+    }
+  }
+
+  implicit object FileResultConverter extends ResultConverter[File] {
+    def convert(result: File): StreamActionResult = {
+      StreamActionResult(
+        status = 200,
+        body = fs2.io.readInputStream(IO.pure(new FileInputStream(result): InputStream), 1024 * 8),
+        contentType = "application/octet-stream", // TODO MIME type should be decided by filename
+        headers = Map.empty // TODO Content-Disposition should be set?
       )
     }
   }
