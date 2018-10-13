@@ -49,9 +49,10 @@ trait FileUploadSupport {
             case s: String =>
               paramName -> new FileParam(paramName, new String(s.getBytes("ISO-8859-1"), "UTF-8"), None)
             case i: InputStream =>
-              val tempFile = Files.createTempFile("scalatra-", ".upload") // TODO Delete temp file?
-              IOUtils.copy(i, new FileOutputStream(tempFile.toFile))
-              paramName -> new FileParam(paramName, fileName.getOrElse(""), Some(tempFile.toFile))
+              val tempFile = Files.createTempFile("scalatra-", ".upload").toFile
+              request.registerTempFile(tempFile)
+              IOUtils.copy(i, new FileOutputStream(tempFile))
+              paramName -> new FileParam(paramName, fileName.getOrElse(""), Some(tempFile))
           }
         }
       }

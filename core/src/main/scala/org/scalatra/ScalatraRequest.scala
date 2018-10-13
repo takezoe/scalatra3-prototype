@@ -1,6 +1,6 @@
 package org.scalatra
 
-import java.io.{ByteArrayInputStream, InputStream}
+import java.io.{ByteArrayInputStream, File, InputStream}
 import java.net.URLDecoder
 import java.nio.file.Files
 
@@ -8,12 +8,15 @@ import cats.effect.IO
 import org.http4s._
 import org.http4s.util.CaseInsensitiveString
 
+import scala.collection.mutable.ListBuffer
+
 /**
- * Wrapper for the http4s's Request[IO].
+ * Wrapper for the http4s's `Request[IO]`.
  */
 class ScalatraRequest(private[scalatra] val underlying: Request[IO]){
 
   private val attrs = new scala.collection.mutable.HashMap[String, AnyRef]()
+  private val tempFiles = new ListBuffer[File]()
 
   lazy val formParams: Map[String, Seq[String]] = {
     try {
@@ -68,8 +71,9 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO]){
           new ByteArrayInputStream(cachedBody)
         case _ =>
           val tempFile = Files.createTempFile("scalatra-", ".req")
+          registerTempFile(tempFile.toFile)
           underlying.body.through(fs2.io.file.writeAll(tempFile)).compile.drain.unsafeRunSync()
-          Files.newInputStream(tempFile) // TODO Delete temp file?
+          Files.newInputStream(tempFile)
       }
     }
   }
@@ -84,6 +88,24 @@ class ScalatraRequest(private[scalatra] val underlying: Request[IO]){
       }.getOrElse(Map.empty)
     }
     new Cookies(requestCookies)
+  }
+
+  /**
+   * Register a temporary file to be deleted after that this request is proceeded.
+   * Registered files are deleted by calling `deleteTempFiles()`.
+   */
+  private[scalatra] def registerTempFile(file: File): Unit = {
+    tempFiles += file
+  }
+
+  /**
+   * Delete temporary files registered by `registerTempFile()`.
+   * This method is called by `Http4sAdapter`.
+   */
+  private[scalatra] def deleteTempFiles(): Unit = {
+    tempFiles.foreach { file =>
+      file.delete()
+    }
   }
 
 }

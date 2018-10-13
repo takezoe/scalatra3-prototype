@@ -18,29 +18,33 @@ object Http4sAdapter extends Http4sDsl[IO] with ResultConverters {
     val service = HttpService[IO]{ case req if app.actions.exists(_.matches(req)) =>
       val request = new ScalatraRequest(req)
 
-      // before actions
-      val beforeActions = app.beforeActions.reverse.filter(_.matches(req))
-      runAllActions(beforeActions, request) match {
-        // when before actions return response then respond it
-        case Some(res) => IO.pure(res)
-        // when before actions return nothing then run body action
-        case None =>
-          val response = try {
-            val actions = app.actions.reverse.filter(_.matches(req))
-            runActions(actions, request)
-          } catch {
-            case NonFatal(e) => throw e
-          } finally {
-            // run after actions
-            val afterActions = app.afterActions.reverse.filter(_.matches(req))
-            runAllActions(afterActions, request)
-          }
+      try {
+        // before actions
+        val beforeActions = app.beforeActions.reverse.filter(_.matches(req))
+        runAllActions(beforeActions, request) match {
+          // when before actions return response then respond it
+          case Some(res) => IO.pure(res)
+          // when before actions return nothing then run body action
+          case None =>
+            val response = try {
+              val actions = app.actions.reverse.filter(_.matches(req))
+              runActions(actions, request)
+            } catch {
+              case NonFatal(e) => throw e
+            } finally {
+              // run after actions
+              val afterActions = app.afterActions.reverse.filter(_.matches(req))
+              runAllActions(afterActions, request)
+            }
 
-          // Add sweet cookies
-          IO.pure(request.cookies.sweetCookies.foldLeft(response){ case (res, (name, content)) =>
-            println(s"Sweet cookie added: ${name}=${content}")
-            res.addCookie(Cookie(name, content))
-          })
+            // Add sweet cookies
+            IO.pure(request.cookies.sweetCookies.foldLeft(response){ case (res, (name, content)) =>
+              println(s"Sweet cookie added: ${name}=${content}")
+              res.addCookie(Cookie(name, content))
+            })
+        }
+      } finally {
+        request.deleteTempFiles()
       }
     }
     service
