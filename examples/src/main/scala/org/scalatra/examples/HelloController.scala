@@ -1,6 +1,5 @@
 package org.scalatra.examples
 
-import org.apache.commons.io.FileUtils
 import org.scalatra._
 import org.scalatra.forms._
 import org.scalatra.i18n.I18nSupport
@@ -105,7 +104,7 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport wit
   post("/upload"){
     println(fileParams("fileName").value)
     fileParams("file").file.map { file =>
-      Ok(FileUtils.readFileToByteArray(file), "image/png")
+      Ok(file, "image/png")
     }.getOrElse {
       BadRequest()
     }
