@@ -59,6 +59,8 @@ lazy val core = project.in(file("core"))
       "org.http4s"             %% "http4s-dsl"          % Http4sVersion,
       "org.scala-lang.modules" %% "scala-xml"           % "1.1.1",
       "org.specs2"             %% "specs2-core"         % Specs2Version % "test",
-      "ch.qos.logback"          % "logback-classic"     % LogbackVersion
+      "ch.qos.logback"          % "logback-classic"     % LogbackVersion,
+      "org.apache.commons"      % "commons-email"       % "1.5",
+      "commons-io"              % "commons-io"          % "2.6"
     )
   )

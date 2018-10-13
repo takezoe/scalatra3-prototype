@@ -14,6 +14,8 @@ trait ScalatraBase extends ResultConverters with ActionInterruptions {
   private[scalatra] val requestHolder   = new DynamicVariable[ScalatraRequest](null)
   private[scalatra] val pathParamHolder = new DynamicVariable[Map[String, Seq[String]]](null)
 
+  private val MultiParamsRequestKey = "org.scalatra.ScalatraBase.multiParams"
+
   protected implicit def request: ScalatraRequest = {
     if(requestHolder.value == null){
       throw new ScalatraException("There needs to be a request in scope to call locale")
@@ -26,17 +28,15 @@ trait ScalatraBase extends ResultConverters with ActionInterruptions {
   }
 
   protected def multiParams: Map[String, Seq[String]] = {
-    if(requestHolder.value == null || pathParamHolder.value == null){
-      throw new ScalatraException("There needs to be a request in scope to call locale")
-    }
-    requestHolder.value.underlying.multiParams ++ requestHolder.value.formParams ++ pathParamHolder.value
+    request.get(MultiParamsRequestKey).getOrElse {
+      val params = request.underlying.multiParams ++ request.formParams ++ pathParamHolder.value
+      request.set(MultiParamsRequestKey, params)
+      params
+    }.asInstanceOf[Map[String, Seq[String]]]
   }
 
   def cookies: Cookies = {
-    if(requestHolder.value == null){
-      throw new ScalatraException("There needs to be a request in scope to call locale")
-    }
-    requestHolder.value.cookies
+    request.cookies
   }
 
   protected def before(f: => Unit): Unit = {

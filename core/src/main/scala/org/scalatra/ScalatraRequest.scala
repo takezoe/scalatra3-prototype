@@ -97,3 +97,4 @@ class Cookies(requestCookies: Map[String, String]) {
   def put(name: String, content: String): Unit = sweetCookies.put(name, content)
 
 }
+

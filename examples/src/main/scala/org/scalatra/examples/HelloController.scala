@@ -1,11 +1,12 @@
 package org.scalatra.examples
 
+import org.apache.commons.io.FileUtils
 import org.scalatra._
 import org.scalatra.forms._
 import org.scalatra.i18n.I18nSupport
 import org.scalatra.twirl.TwirlSupport
 
-class HelloController extends ScalatraBase with FormSupport with I18nSupport with TwirlSupport {
+class HelloController extends ScalatraBase with FormSupport with I18nSupport with TwirlSupport with FileUploadSupport {
 
   case class LoginForm(
     id: String,
@@ -84,5 +85,31 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport wit
       Hi, you have been on this page {previous} times already
     </p>
   }
+
+  get("/upload"){
+    <html>
+      <head>
+        <title>File upload</title>
+      </head>
+      <body>
+        <h1>File upload</h1>
+        <form method="POST" action="/upload" enctype="multipart/form-data">
+          <input type="text" name="fileName"></input>
+          <input type="file" name="file"></input>
+          <input type="submit" value="Login"></input>
+        </form>
+      </body>
+    </html>
+  }
+
+  post("/upload"){
+    println(fileParams("fileName").value)
+    fileParams("file").file.map { file =>
+      Ok(FileUtils.readFileToByteArray(file), "image/png")
+    }.getOrElse {
+      BadRequest()
+    }
+  }
+
 }
 
