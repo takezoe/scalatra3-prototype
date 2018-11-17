@@ -1,111 +1,60 @@
 package org.scalatra
 
-import java.io.{ByteArrayInputStream, File, InputStream}
-import java.net.URLDecoder
-import java.nio.file.Files
+import java.io.{ByteArrayInputStream, InputStream}
 
-import cats.effect.IO
-import org.http4s._
-import org.http4s.util.CaseInsensitiveString
+import javax.servlet.http.HttpServletRequest
+import org.apache.commons.io.IOUtils
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.JavaConverters._
 
-/**
- * Wrapper for the http4s's `Request[IO]`.
- */
-class ScalatraRequest(private[scalatra] val underlying: Request[IO]){
+class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
 
-  private val attrs = new scala.collection.mutable.HashMap[String, AnyRef]()
-  private val tempFiles = new ListBuffer[File]()
-
-  lazy val formParams: Map[String, Seq[String]] = {
-    try {
-      underlying.headers.get(CaseInsensitiveString("Content-Type")).collect { case x if x.value == "application/x-www-form-urlencoded" =>
-        body.split("&").map { kv =>
-          val array = kv.split("=")
-          val key   = URLDecoder.decode(array(0), "UTF-8")
-          val value = URLDecoder.decode(array(1), "UTF-8")
-          (key -> value)
-        }.groupBy { case (key, value) =>
-          key
-        }.map { case (key, kv) =>
-          key -> kv.map(_._2).toSeq
-        }
-      }.getOrElse(Map.empty)
-    } catch {
-      case _: Exception => Map.empty // TODO log?
-    }
-  }
-
-  def set(key: String, value: AnyRef): Unit = attrs.put(key, value)
-  def get(key: String): Option[AnyRef] = attrs.get(key)
-  def contains(key: String): Boolean = attrs.contains(key)
+  def set(key: String, value: AnyRef): Unit = underlying.setAttribute(key, value)
+  def get(key: String): Option[AnyRef] = Option(underlying.getAttribute(key))
+  def contains(key: String): Boolean = underlying.getAttribute(key) != null
 
   private var cachedBody: Array[Byte] = null
 
   private def createBodyCache(): Unit = {
     if(cachedBody == null) {
-      val bytes = underlying.body.compile.fold(List.empty[Byte]) { case (acc, byte) => acc :+ byte }
-      cachedBody = bytes.unsafeRunSync().toArray
+      cachedBody = IOUtils.toByteArray(underlying.getInputStream)
     }
   }
 
   lazy val body: String = {
     createBodyCache()
-    val charset = underlying.contentType.flatMap(_.charset).getOrElse(Charset.`UTF-8`)
-    new String(cachedBody, charset.nioCharset)
+    val charset = Option(underlying.getContentType).filter(_.contains(";")).flatMap(_.split(";").lastOption).getOrElse("UTF-8")
+    new String(cachedBody, charset)
   }
 
-  lazy val queryString: String = underlying.queryString
-  lazy val contentType: Option[String] = underlying.contentType.map(_.value)
-  lazy val contentLength: Option[Long] = underlying.contentLength
-  lazy val headers: Map[String, String] = underlying.headers.map { x => x.name.toString() -> x.value }.toMap
+  lazy val queryString: String = underlying.getQueryString
+
+  lazy val contentType: Option[String] = Option(underlying.getContentType)
+
+  lazy val contentLength: Option[Int] = {
+    val length = underlying.getContentLength
+    if(length < 0) None else Some(length)
+  }
+
+  lazy val headers: Map[String, String] = {
+    underlying.getHeaderNames.asScala.map { name =>
+      name -> underlying.getHeader(name)
+    }.toMap
+  }
 
   def inputStream: InputStream = {
     if(cachedBody != null) {
       new ByteArrayInputStream(cachedBody)
     } else {
-      underlying.contentLength match {
-        case Some(length) if length < 1024 * 1024 * 1 =>
-          createBodyCache()
-          new ByteArrayInputStream(cachedBody)
-        case _ =>
-          val tempFile = Files.createTempFile("scalatra-", ".req")
-          registerTempFile(tempFile.toFile)
-          underlying.body.through(fs2.io.file.writeAll(tempFile)).compile.drain.unsafeRunSync()
-          Files.newInputStream(tempFile)
-      }
+      underlying.getInputStream
     }
   }
 
   lazy val cookies: Cookies = {
-    val requestCookies: Map[String, String] = {
-      val cookies = org.http4s.headers.Cookie.from(underlying.headers)
-      cookies.map { cookies =>
-        cookies.values.toList.map { cookie =>
-          cookie.name -> cookie.content
-        }.toMap
-      }.getOrElse(Map.empty)
-    }
+    val requestCookies: Map[String, String] = underlying.getCookies.map { cookie =>
+      cookie.getName -> cookie.getValue
+    }.toMap
     new Cookies(requestCookies)
-  }
-
-  /**
-   * Register a temporary file to be deleted after that this request is proceeded.
-   * Registered files are deleted by calling `deleteTempFiles()`.
-   */
-  private[scalatra] def registerTempFile(file: File): Unit = {
-    tempFiles += file
-  }
-
-  /**
-   * Delete temporary files registered by `registerTempFile()`.
-   * This method is called by `Http4sAdapter`.
-   */
-  private[scalatra] def deleteTempFiles(): Unit = {
-    tempFiles.foreach { file =>
-      file.delete()
-    }
   }
 
 }

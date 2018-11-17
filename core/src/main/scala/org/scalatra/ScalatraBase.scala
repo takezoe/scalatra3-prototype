@@ -1,15 +1,14 @@
 package org.scalatra
 
-import org.http4s._
-
 import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
+import scala.collection.JavaConverters._
 
 trait ScalatraBase extends ResultConverters with ActionInterruptions {
 
-  private[scalatra] val beforeActions = new ListBuffer[Action]()
-  private[scalatra] val actions       = new ListBuffer[Action]()
-  private[scalatra] val afterActions  = new ListBuffer[Action]()
+  private[scalatra] val beforeActions = new ListBuffer[Action[_]]()
+  private[scalatra] val actions       = new ListBuffer[Action[_]]()
+  private[scalatra] val afterActions  = new ListBuffer[Action[_]]()
 
   private[scalatra] val requestHolder   = new DynamicVariable[ScalatraRequest](null)
   private[scalatra] val pathParamHolder = new DynamicVariable[Map[String, Seq[String]]](null)
@@ -29,7 +28,9 @@ trait ScalatraBase extends ResultConverters with ActionInterruptions {
 
   protected def multiParams: Map[String, Seq[String]] = {
     request.get(MultiParamsRequestKey).getOrElse {
-      val params = request.underlying.multiParams ++ request.formParams ++ pathParamHolder.value
+      val params = request.underlying.getParameterNames.asScala.map { name =>
+        name -> request.underlying.getParameterValues(name).toSeq
+      }.toMap ++ pathParamHolder.value
       request.set(MultiParamsRequestKey, params)
       params
     }.asInstanceOf[Map[String, Seq[String]]]
@@ -60,39 +61,39 @@ trait ScalatraBase extends ResultConverters with ActionInterruptions {
   }
 
   protected def get[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new Action(this, Some(path), Some(Method.GET), converter.convert(f))
+    val action = new Action(this, Some(path), Some(Method.Get), converter.convert(f))
     registerAction(action)
   }
 
   protected def post[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new Action(this, Some(path), Some(Method.POST), converter.convert(f))
+    val action = new Action(this, Some(path), Some(Method.Post), converter.convert(f))
     registerAction(action)
   }
 
   protected def put[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new Action(this, Some(path), Some(Method.PUT), converter.convert(f))
+    val action = new Action(this, Some(path), Some(Method.Put), converter.convert(f))
     registerAction(action)
   }
 
   protected def delete[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new Action(this, Some(path), Some(Method.DELETE), converter.convert(f))
+    val action = new Action(this, Some(path), Some(Method.Delete), converter.convert(f))
     registerAction(action)
   }
 
   protected def head[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
-    val action = new Action(this, Some(path), Some(Method.HEAD), converter.convert(f))
+    val action = new Action(this, Some(path), Some(Method.Head), converter.convert(f))
     registerAction(action)
   }
 
-  protected def registerAction(action: Action): Unit = {
+  protected def registerAction(action: Action[_]): Unit = {
     actions += action
   }
 
-  protected def registerBeforeAction(action: Action): Unit = {
+  protected def registerBeforeAction(action: Action[_]): Unit = {
     beforeActions += action
   }
 
-  protected def registerAfterAction(action: Action): Unit = {
+  protected def registerAfterAction(action: Action[_]): Unit = {
     afterActions += action
   }
 }

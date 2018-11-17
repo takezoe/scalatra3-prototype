@@ -1,11 +1,28 @@
 package org.scalatra.examples
 
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.servlet.ServletHolder
 import org.scalatra._
 import org.scalatra.forms._
 import org.scalatra.i18n.I18nSupport
 import org.scalatra.twirl.TwirlSupport
 
-class HelloController extends ScalatraBase with FormSupport with I18nSupport with TwirlSupport with FileUploadSupport {
+object HelloController extends App {
+
+  val server = new Server(8080)
+
+  import org.eclipse.jetty.servlet.ServletHandler
+
+  val handler = new ServletHandler
+  handler.addServletWithMapping(new ServletHolder(new ScalatraServlet(new HelloController())), "/*")
+
+  server.setHandler(handler)
+
+  server.start
+  server.dumpStdErr
+}
+
+class HelloController extends ScalatraBase with FormSupport with I18nSupport with TwirlSupport /*with FileUploadSupport*/ {
 
   case class LoginForm(
     id: String,
@@ -69,6 +86,7 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport wit
     )
   }
 
+/*
   post("/test"){
     println("** body **")
     ActionResult(200, request.body, Map.empty)
@@ -109,6 +127,6 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport wit
       BadRequest()
     }
   }
-
+*/
 }
 

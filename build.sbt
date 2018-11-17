@@ -49,14 +49,19 @@ lazy val twirl = project.in(file("twirl"))
   .settings(buildSettings)
   .dependsOn(core)
 
+val jettyVersion = "9.4.6.v20170531"
+
 lazy val core = project.in(file("core"))
   .settings(buildSettings)
   .settings(
     name := "scalatra3-core",
     libraryDependencies ++= Seq(
-      "org.http4s"             %% "http4s-blaze-server" % Http4sVersion,
-      "org.http4s"             %% "http4s-circe"        % Http4sVersion,
-      "org.http4s"             %% "http4s-dsl"          % Http4sVersion,
+      "org.eclipse.jetty"       %  "jetty-server"       % jettyVersion,
+      "org.eclipse.jetty"       %  "jetty-plus"         % jettyVersion,
+      "org.eclipse.jetty"       %  "jetty-servlet"      % jettyVersion,
+      "org.eclipse.jetty.websocket" %"websocket-server" % jettyVersion,
+      "org.eclipse.jetty"       %  "jetty-webapp"       % jettyVersion,
+      "javax.servlet"           %  "javax.servlet-api"  % "3.1.0",
       "org.scala-lang.modules" %% "scala-xml"           % "1.1.1",
       "org.specs2"             %% "specs2-core"         % Specs2Version % "test",
       "ch.qos.logback"          % "logback-classic"     % LogbackVersion,

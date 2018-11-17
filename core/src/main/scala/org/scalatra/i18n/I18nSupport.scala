@@ -2,7 +2,9 @@ package org.scalatra.i18n
 
 import java.util.Locale
 
+import javax.servlet.http.HttpServletRequest
 import org.scalatra.{ScalatraBase, ScalatraException, ScalatraRequest}
+import sun.net.httpserver.HttpServerImpl
 
 object I18nSupport {
 
