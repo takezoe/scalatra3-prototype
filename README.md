@@ -1,6 +1,6 @@
 # scalatra3-prototype
 
-Prototype of Scalatra3 which will be fully restructured and built on the top of http4s!
+Prototype of Scalatra3 which will be fully restructured on clean code base.
 
 Basically Scalatra3 respects existing Scalatra API, but it will elliminate ambiguous API and servlet dependent API. Also it will elliminate excessive flexibility and abstraction to keep framework simple and lightweight.
 
