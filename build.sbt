@@ -56,15 +56,13 @@ lazy val core = project.in(file("core"))
   .settings(
     name := "scalatra3-core",
     libraryDependencies ++= Seq(
-      "org.eclipse.jetty"           %  "jetty-server"       % jettyVersion,
-      "org.eclipse.jetty"           %  "jetty-plus"         % jettyVersion,
-      "org.eclipse.jetty"           %  "jetty-servlet"      % jettyVersion,
-      "org.eclipse.jetty.websocket" %  "websocket-server"   % jettyVersion,
-      "org.eclipse.jetty"           %  "jetty-webapp"       % jettyVersion,
-      "javax.servlet"               %  "javax.servlet-api"  % "3.1.0",
-      "org.scala-lang.modules"      %% "scala-xml"          % "1.1.1",
-      "org.specs2"                  %% "specs2-core"        % Specs2Version % "test",
-      "ch.qos.logback"              %  "logback-classic"    % LogbackVersion,
-      "commons-fileupload"          %  "commons-fileupload" % "1.3.3"
+      "org.eclipse.jetty"      %  "jetty-server"       % jettyVersion,
+      "org.eclipse.jetty"      %  "jetty-servlet"      % jettyVersion,
+      "org.eclipse.jetty"      %  "jetty-webapp"       % jettyVersion,
+      "javax.servlet"          %  "javax.servlet-api"  % "3.1.0",
+      "org.scala-lang.modules" %% "scala-xml"          % "1.1.1",
+      "org.specs2"             %% "specs2-core"        % Specs2Version % "test",
+      "ch.qos.logback"         %  "logback-classic"    % LogbackVersion,
+      "commons-fileupload"     %  "commons-fileupload" % "1.3.3"
     )
   )
