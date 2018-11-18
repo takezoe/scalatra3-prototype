@@ -19,10 +19,10 @@ object HelloController extends App {
   server.setHandler(handler)
 
   server.start
-  server.dumpStdErr
+  //server.dumpStdErr
 }
 
-class HelloController extends ScalatraBase with FormSupport with I18nSupport with TwirlSupport /*with FileUploadSupport*/ {
+class HelloController extends ScalatraBase with FileUploadSupport with FormSupport with I18nSupport with TwirlSupport {
 
   case class LoginForm(
     id: String,
@@ -101,7 +101,7 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport wit
       Hi, you have been on this page {previous} times already
     </p>
   }
-/*
+
   get("/upload"){
     <html>
       <head>
@@ -119,13 +119,12 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport wit
   }
 
   post("/upload"){
-    println(fileParams("fileName").value)
-    fileParams("file").file.map { file =>
-      Ok(file, "image/png")
+    fileParams.get("file").map { file =>
+      Ok(file.getInputStream, "image/png")
     }.getOrElse {
       BadRequest()
     }
   }
-*/
+
 }
 

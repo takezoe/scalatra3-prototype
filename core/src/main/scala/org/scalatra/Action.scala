@@ -26,6 +26,9 @@ object Method {
   case object Head extends Method {
     val name = "head"
   }
+  case object Patch extends Method {
+    val name = "patch"
+  }
 }
 
 class Action[T](instance: ScalatraBase, path: Option[String], method: Option[Method], f: => ActionResult) {

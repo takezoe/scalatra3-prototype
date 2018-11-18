@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
 /**
  * A wrapper of HttpServletRequest
  *
- * @param underlying underlyning HttpServletRequest instance
+ * @param underlying underlying HttpServletRequest instance
  */
 class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
 
