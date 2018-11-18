@@ -42,7 +42,7 @@ class ScalatraServlet(app: ScalatraBase) extends HttpServlet with ResultConverte
         val result     = action.run(request, pathParams)
         Some(result)
       } catch {
-        case e: HaltException => Some(e.response)
+        case e: HaltException => Some(e.result)
         case _: PassException => None
       }
     }.find(_.isDefined).flatten
@@ -60,7 +60,7 @@ class ScalatraServlet(app: ScalatraBase) extends HttpServlet with ResultConverte
         action.run(request, pathParams)
         None
       } catch {
-        case e: HaltException => Some(e.response)
+        case e: HaltException => Some(e.result)
         case _: PassException => None
       }
     }.find(_.isDefined).flatten
