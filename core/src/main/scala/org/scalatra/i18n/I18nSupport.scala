@@ -7,13 +7,9 @@ import org.scalatra.{ScalatraBase, ScalatraException, ScalatraRequest}
 import sun.net.httpserver.HttpServerImpl
 
 object I18nSupport {
-
   val LocaleKey: String = "org.scalatra.i18n.locale"
-
   val UserLocalesKey: String = "org.scalatra.i18n.userLocales"
-
   val MessagesKey: String = "messages"
-
 }
 
 trait I18nSupport { this: ScalatraBase =>

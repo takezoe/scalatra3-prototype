@@ -5,8 +5,8 @@ import scala.util.DynamicVariable
 import scala.collection.JavaConverters._
 
 object ScalatraBase {
-  val ParamsRequestKey      = "org.scalatra.ScalatraBase.params"
-  val MultiParamsRequestKey = "org.scalatra.ScalatraBase.multiParams"
+  val ParamsRequestKey: String = "org.scalatra.ScalatraBase.params"
+  val MultiParamsRequestKey: String = "org.scalatra.ScalatraBase.multiParams"
 }
 
 trait ScalatraBase extends ResultConverters {
