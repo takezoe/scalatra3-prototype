@@ -1,6 +1,7 @@
 package org.scalatra
 
 import javax.servlet.http.HttpServletRequest
+import scala.collection.mutable.{Map => MutableMap}
 
 sealed trait Method {
   val name: String
@@ -54,12 +55,12 @@ class Action[T](instance: ScalatraBase, path: Option[String], method: Option[Met
       case Some(x) if x.matches(request.getMethod) =>
         if(pathFragments.nonEmpty){
           val requestPathFragments = splitPath(request.getPathInfo)
-          checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
+          checkPath(pathFragments, requestPathFragments, MutableMap.empty, false)._1
         } else true
       case None =>
         if(pathFragments.nonEmpty){
           val requestPathFragments = splitPath(request.getPathInfo)
-          checkPath(pathFragments, requestPathFragments, Map.empty, false)._1
+          checkPath(pathFragments, requestPathFragments, MutableMap.empty, false)._1
         } else true
       case _ => false
     }
@@ -93,11 +94,11 @@ class Action[T](instance: ScalatraBase, path: Option[String], method: Option[Met
    */
   def pathParam(request: HttpServletRequest): Map[String, Seq[String]] = {
     val requestPathFragments = request.getPathInfo.split("/")
-    checkPath(pathFragments, requestPathFragments, Map.empty, true)._2
+    checkPath(pathFragments, requestPathFragments, scala.collection.mutable.Map.empty, true)._2
   }
 
   protected def checkPath(pathFragments: Seq[String], requestPathFragments: Seq[String],
-    pathParams: Map[String, Seq[String]], collectPathParams: Boolean): (Boolean, Map[String, Seq[String]]) = {
+    pathParams: MutableMap[String, Seq[String]], collectPathParams: Boolean): (Boolean, Map[String, Seq[String]]) = {
     (pathFragments.headOption, requestPathFragments.headOption) match {
       case (Some(a), Some(b)) if a.startsWith(":") =>
         if (collectPathParams){
@@ -107,9 +108,9 @@ class Action[T](instance: ScalatraBase, path: Option[String], method: Option[Met
         }
       case (Some(a), Some(b)) if a == "*" && pathFragments.size == 1 =>
         if (collectPathParams){
-          (true, requestPathFragments.foldLeft(pathParams){ case (params, x) => addMultiParams("splat", x, params) })
+          (true, requestPathFragments.foldLeft(pathParams){ case (params, x) => addMultiParams("splat", x, params) }.toMap)
         } else {
-          (true, pathParams)
+          (true, pathParams.toMap)
         }
       case (Some(a), Some(b)) if a == "*" =>
         if (collectPathParams){
@@ -121,17 +122,17 @@ class Action[T](instance: ScalatraBase, path: Option[String], method: Option[Met
         checkPath(pathFragments.tail, requestPathFragments.tail, pathParams, collectPathParams)
 
       case (None, None) =>
-        (true, pathParams)
+        (true, pathParams.toMap)
 
       case _ =>
-        (false, pathParams)
+        (false, pathParams.toMap)
     }
   }
 
-  protected def addMultiParams(name: String, value: String, params: Map[String, Seq[String]]): Map[String, Seq[String]] = {
+  protected def addMultiParams(name: String, value: String, params: MutableMap[String, Seq[String]]): MutableMap[String, Seq[String]] = {
     params.get(name) match {
-      case Some(x) => params ++ Map(name -> (x :+ value))
-      case None    => params ++ Map(name -> Seq(value))
+      case Some(x) => params += (name -> (x :+ value))
+      case None    => params += (name -> Seq(value))
     }
   }
 

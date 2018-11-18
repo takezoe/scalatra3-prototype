@@ -65,7 +65,6 @@ lazy val core = project.in(file("core"))
       "org.scala-lang.modules"      %% "scala-xml"          % "1.1.1",
       "org.specs2"                  %% "specs2-core"        % Specs2Version % "test",
       "ch.qos.logback"              %  "logback-classic"    % LogbackVersion,
-      "commons-io"                  %  "commons-io"         % "2.6",
       "commons-fileupload"          %  "commons-fileupload" % "1.3.3"
     )
   )
