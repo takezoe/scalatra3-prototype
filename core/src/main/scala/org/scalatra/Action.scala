@@ -71,8 +71,8 @@ class Action[T](instance: ScalatraBase, path: Option[String], method: Option[Met
    * @throws HaltException when halt() is called in the action
    * @throws PassException when pass() is called in the action
    */
-  def run(request: HttpServletRequest, pathParams: Map[String, Seq[String]]): ActionResult = {
-    instance.requestHolder.withValue(new ScalatraRequest(request)){
+  def run(request: ScalatraRequest, pathParams: Map[String, Seq[String]]): ActionResult = {
+    instance.requestHolder.withValue(request){
       instance.pathParamHolder.withValue(pathParams){
         f
       }

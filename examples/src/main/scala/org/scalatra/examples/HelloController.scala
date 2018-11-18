@@ -86,10 +86,9 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport wit
     )
   }
 
-/*
   post("/test"){
     println("** body **")
-    ActionResult(200, request.body, Map.empty)
+    request.body
   }
 
   get("/cookie") {
@@ -102,7 +101,7 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport wit
       Hi, you have been on this page {previous} times already
     </p>
   }
-
+/*
   get("/upload"){
     <html>
       <head>
