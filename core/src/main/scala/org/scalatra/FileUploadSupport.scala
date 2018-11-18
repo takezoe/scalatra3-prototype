@@ -5,10 +5,13 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory
 import org.apache.commons.fileupload.servlet.ServletFileUpload
 import scala.collection.JavaConverters._
 
-trait FileUploadSupport { this: ScalatraBase =>
+object FileUploadSupport {
+  val FileParamsRequestKey      = "org.scalatra.FileUploadSupport.fileParams"
+  val FileMultiParamsRequestKey = "org.scalatra.FileUploadSupport.fileMultiParams"
+}
 
-  private val FileParamsRequestKey      = "org.scalatra.FileUploadSupport.fileParams"
-  private val FileMultiParamsRequestKey = "org.scalatra.FileUploadSupport.fileMultiParams"
+trait FileUploadSupport { this: ScalatraBase =>
+  import FileUploadSupport._
 
   protected def fileParams: Map[String, FileItem] = {
     request.get(FileParamsRequestKey).getOrElse {

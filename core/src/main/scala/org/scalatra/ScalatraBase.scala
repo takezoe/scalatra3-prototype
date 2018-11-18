@@ -4,7 +4,13 @@ import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
 import scala.collection.JavaConverters._
 
+object ScalatraBase {
+  val ParamsRequestKey      = "org.scalatra.ScalatraBase.params"
+  val MultiParamsRequestKey = "org.scalatra.ScalatraBase.multiParams"
+}
+
 trait ScalatraBase extends ResultConverters {
+  import ScalatraBase._
 
   private[scalatra] val beforeActions = new ListBuffer[Action[_]]()
   private[scalatra] val actions       = new ListBuffer[Action[_]]()
@@ -12,9 +18,6 @@ trait ScalatraBase extends ResultConverters {
 
   private[scalatra] val requestHolder   = new DynamicVariable[ScalatraRequest](null)
   private[scalatra] val pathParamHolder = new DynamicVariable[Map[String, Seq[String]]](null)
-
-  private val ParamsRequestKey      = "org.scalatra.ScalatraBase.params"
-  private val MultiParamsRequestKey = "org.scalatra.ScalatraBase.multiParams"
 
   protected implicit def request: ScalatraRequest = {
     if(requestHolder.value == null){

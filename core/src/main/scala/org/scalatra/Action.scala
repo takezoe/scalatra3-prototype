@@ -75,6 +75,9 @@ class Action[T](instance: ScalatraBase, path: Option[String], method: Option[Met
    * @throws PassException when pass() is called in the action
    */
   def run(request: ScalatraRequest, pathParams: Map[String, Seq[String]]): ActionResult = {
+    request.underlying.removeAttribute(ScalatraBase.ParamsRequestKey)
+    request.underlying.removeAttribute(ScalatraBase.MultiParamsRequestKey)
+
     instance.requestHolder.withValue(request){
       instance.pathParamHolder.withValue(pathParams){
         f
@@ -104,7 +107,7 @@ class Action[T](instance: ScalatraBase, path: Option[String], method: Option[Met
         }
       case (Some(a), Some(b)) if a == "*" && pathFragments.size == 1 =>
         if (collectPathParams){
-          (true, requestPathFragments.foldLeft(pathParams){ case (params, x) =>  addMultiParams("splat", x, params) })
+          (true, requestPathFragments.foldLeft(pathParams){ case (params, x) => addMultiParams("splat", x, params) })
         } else {
           (true, pathParams)
         }
