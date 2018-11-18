@@ -7,6 +7,11 @@ import org.apache.commons.io.IOUtils
 
 import scala.collection.JavaConverters._
 
+/**
+ * A wrapper of HttpServletRequest
+ *
+ * @param underlying underlyning HttpServletRequest instance
+ */
 class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
 
   def set(key: String, value: AnyRef): Unit = underlying.setAttribute(key, value)

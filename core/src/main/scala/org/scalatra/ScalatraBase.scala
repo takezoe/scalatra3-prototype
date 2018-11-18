@@ -4,7 +4,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
 import scala.collection.JavaConverters._
 
-trait ScalatraBase extends ResultConverters with ActionInterruptions {
+trait ScalatraBase extends ResultConverters {
 
   private[scalatra] val beforeActions = new ListBuffer[Action[_]]()
   private[scalatra] val actions       = new ListBuffer[Action[_]]()
@@ -83,6 +83,27 @@ trait ScalatraBase extends ResultConverters with ActionInterruptions {
   protected def head[T](path: String)(f: => T)(implicit converter: ResultConverter[T]) = {
     val action = new Action(this, Some(path), Some(Method.Head), converter.convert(f))
     registerAction(action)
+  }
+
+  protected def halt[T](status: java.lang.Integer = null, body: T = (), headers: Map[String, String] = Map.empty)(implicit converter: ResultConverter[T]): Unit = {
+    val result = converter.convert(body)
+
+    throw new HaltException(converter.convert(body).copy(
+      status  = if(status == null) result.status else status,
+      headers = result.headers ++ headers
+    ))
+  }
+
+  protected def halt(result: ActionResult): Unit = {
+    throw new HaltException(result)
+  }
+
+  protected def redirect(path: String): Unit = {
+    halt(Found(path))
+  }
+
+  protected def pass(): Unit = {
+    throw new PassException()
   }
 
   protected def registerAction(action: Action[_]): Unit = {

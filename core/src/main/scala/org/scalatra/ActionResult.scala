@@ -6,6 +6,10 @@ import org.apache.commons.io.IOUtils
 
 import scala.util.Try
 
+/**
+ * The results of Action returned from Action#run().
+ * Scalatra renders the response using information stored in this object.
+ */
 case class ActionResult(
   status: Int,
   body: Body,
