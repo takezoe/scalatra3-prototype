@@ -10,14 +10,17 @@ import org.scalatra.twirl.TwirlSupport
 
 object HelloController extends App {
 
+  System.setProperty("org.eclipse.jetty.util.log.class", "org.eclipse.jetty.util.log.StdErrLog")
+  System.setProperty("org.eclipse.jetty.LEVEL", "INFO")
+
   val server = new Server(8080)
+  server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", "1")
 
   val handler = new ServletHandler
   handler.addServletWithMapping(new ServletHolder(new ScalatraServlet(new HelloController())), "/*")
   server.setHandler(handler)
 
   server.start
-  //server.dumpStdErr
 }
 
 class HelloController extends ScalatraBase with FileUploadSupport with FormSupport with I18nSupport with TwirlSupport {
@@ -110,7 +113,7 @@ class HelloController extends ScalatraBase with FileUploadSupport with FormSuppo
         <form method="POST" action="/upload" enctype="multipart/form-data">
           <input type="text" name="fileName"></input>
           <input type="file" name="file"></input>
-          <input type="submit" value="Login"></input>
+          <input type="submit" value="Upload"></input>
         </form>
       </body>
     </html>
