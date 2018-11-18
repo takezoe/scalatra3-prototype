@@ -96,7 +96,7 @@ class HelloController extends ScalatraBase with FileUploadSupport with FormSuppo
       case Some(v) =>  v.toInt
       case None    => 0
     }
-    cookies.update("counter", (previous + 1).toString)
+    cookies.set("counter", (previous + 1).toString)
     <p>
       Hi, you have been on this page {previous} times already
     </p>

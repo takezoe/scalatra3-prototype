@@ -13,6 +13,7 @@ trait ScalatraBase extends ResultConverters {
   private[scalatra] val requestHolder   = new DynamicVariable[ScalatraRequest](null)
   private[scalatra] val pathParamHolder = new DynamicVariable[Map[String, Seq[String]]](null)
 
+  private val ParamsRequestKey      = "org.scalatra.ScalatraBase.params"
   private val MultiParamsRequestKey = "org.scalatra.ScalatraBase.multiParams"
 
   protected implicit def request: ScalatraRequest = {
@@ -23,7 +24,11 @@ trait ScalatraBase extends ResultConverters {
   }
 
   protected def params: Map[String, String] = {
-    multiParams.map { case (name, values) => name -> values.head }
+    request.get(ParamsRequestKey).getOrElse {
+      val params = multiParams.map { case (name, values) => name -> values.head }
+      request.set(ParamsRequestKey, params)
+      params
+    }.asInstanceOf[Map[String, String]]
   }
 
   protected def multiParams: Map[String, Seq[String]] = {
@@ -36,8 +41,12 @@ trait ScalatraBase extends ResultConverters {
     }.asInstanceOf[Map[String, Seq[String]]]
   }
 
-  def cookies: Cookies = {
+  protected def cookies: Cookies = {
     request.cookies
+  }
+
+  protected def sessions: Sessions = {
+    request.sessions
   }
 
   protected def before(f: => Unit): Unit = {

@@ -75,7 +75,7 @@ trait I18nSupport { this: ScalatraBase =>
   private def resolveHttpLocale: Option[Locale] = {
     (params.get(LocaleKey) match {
       case Some(localeValue) =>
-        cookies.put(LocaleKey, localeValue)
+        cookies.set(LocaleKey, localeValue)
         Some(localeValue)
       case _ =>
         cookies.get(LocaleKey)

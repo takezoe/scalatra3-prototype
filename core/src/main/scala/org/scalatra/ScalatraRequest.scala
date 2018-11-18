@@ -2,7 +2,7 @@ package org.scalatra
 
 import java.io.{ByteArrayInputStream, InputStream}
 
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpServletRequest, HttpSession}
 import org.apache.commons.io.IOUtils
 
 import scala.collection.JavaConverters._
@@ -62,6 +62,8 @@ class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
     new Cookies(requestCookies)
   }
 
+  lazy val sessions: Sessions = new Sessions(underlying)
+
 }
 
 class Cookies(requestCookies: Map[String, String]) {
@@ -69,8 +71,28 @@ class Cookies(requestCookies: Map[String, String]) {
   private[scalatra] val sweetCookies = scala.collection.mutable.Map[String, String]()
 
   def get(name: String): Option[String] = sweetCookies.get(name).orElse(requestCookies.get(name))
-  def update(name: String, content: String): Unit = sweetCookies.update(name, content)
-  def put(name: String, content: String): Unit = sweetCookies.put(name, content)
+  def set(name: String, content: String): Unit = sweetCookies.put(name, content)
+
+}
+
+class Sessions(request: HttpServletRequest) {
+
+  private def getSession(): Option[HttpSession] = {
+    Option(request.getSession)
+  }
+
+  def get(name: String): Option[String] = {
+    getSession().flatMap { session =>
+      Option(session.getAttribute(name)).map(_.asInstanceOf[String])
+    }
+  }
+
+  def set(name: String, value: String): Unit = {
+    getSession() match {
+      case Some(session) => session.setAttribute(name, value)
+      case None => throw new ScalatraException("session is not available.")
+    }
+  }
 
 }
 
