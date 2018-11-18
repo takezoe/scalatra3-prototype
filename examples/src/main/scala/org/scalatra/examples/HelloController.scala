@@ -1,6 +1,7 @@
 package org.scalatra.examples
 
 import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.servlet.ServletHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.scalatra._
 import org.scalatra.forms._
@@ -11,11 +12,8 @@ object HelloController extends App {
 
   val server = new Server(8080)
 
-  import org.eclipse.jetty.servlet.ServletHandler
-
   val handler = new ServletHandler
   handler.addServletWithMapping(new ServletHolder(new ScalatraServlet(new HelloController())), "/*")
-
   server.setHandler(handler)
 
   server.start

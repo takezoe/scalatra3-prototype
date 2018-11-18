@@ -7,23 +7,34 @@ import scala.collection.JavaConverters._
 
 trait FileUploadSupport { this: ScalatraBase =>
 
-  lazy val fileParams: Map[String, FileItem] = {
-    fileMultiParams.map { case (name, values) => name -> values.head }
+  private val FileParamsRequestKey      = "org.scalatra.FileUploadSupport.fileParams"
+  private val FileMultiParamsRequestKey = "org.scalatra.FileUploadSupport.fileMultiParams"
+
+  protected def fileParams: Map[String, FileItem] = {
+    request.get(FileParamsRequestKey).getOrElse {
+      val fileParams = fileMultiParams.map { case (name, values) => name -> values.head }
+      request.set(FileParamsRequestKey, fileParams)
+      fileParams
+    }.asInstanceOf[Map[String, FileItem]]
   }
 
-  lazy val fileMultiParams: Map[String, Seq[FileItem]] = {
+  protected def fileMultiParams: Map[String, Seq[FileItem]] = {
     if (isMultipartRequest(request)){
-      val factory    = new DiskFileItemFactory()
-      val fileUpload = new ServletFileUpload(factory)
-      val fileItems  = fileUpload.parseRequest(request.underlying)
+      request.get(FileMultiParamsRequestKey).getOrElse {
+        val factory    = new DiskFileItemFactory()
+        val fileUpload = new ServletFileUpload(factory)
+        val fileItems  = fileUpload.parseRequest(request.underlying)
 
-      fileItems.asScala.map { fileItem =>
-        fileItem.getFieldName -> fileItem
-      }.groupBy { case (name, fileItem) =>
-        name
-      }.map { case (name, fileItems) =>
-        name -> fileItems.map { case (name, fileItem) => fileItem }
-      }
+        val fileMultiParams = fileItems.asScala.map { fileItem =>
+          fileItem.getFieldName -> fileItem
+        }.groupBy { case (name, fileItem) =>
+          name
+        }.map { case (name, fileItems) =>
+          name -> fileItems.map { case (name, fileItem) => fileItem }
+        }
+        request.set(FileMultiParamsRequestKey, fileMultiParams)
+        fileMultiParams
+      }.asInstanceOf[Map[String, Seq[FileItem]]]
     } else Map.empty
   }
 
