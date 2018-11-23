@@ -9,7 +9,7 @@ object ScalatraBase {
   val MultiParamsRequestKey: String = "org.scalatra.ScalatraBase.multiParams"
 }
 
-trait ScalatraBase extends ResultConverters {
+abstract class ScalatraBase extends ResultConverters {
   import ScalatraBase._
 
   private[scalatra] val beforeActions = new ListBuffer[Action[_]]()

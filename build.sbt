@@ -20,14 +20,26 @@ lazy val root = project.in(file("."))
   .settings(name := "scalatra3-root")
   .settings(buildSettings)
   .settings(noPublish)
-  .aggregate(core, forms, examples)
+  .aggregate(core, forms, launcher, examples)
 
 lazy val examples = project.in(file("examples"))
   .settings(name := "scalatra3-examples")
   .settings(buildSettings)
   .settings(noPublish)
-  .dependsOn(core, forms, twirl)
+  .dependsOn(core, forms, twirl, launcher)
   .enablePlugins(SbtTwirl)
+
+lazy val launcher = project.in(file("launcher"))
+  .settings(name := "scalatra3-launcher")
+  .settings(buildSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.eclipse.jetty"      %  "jetty-server"       % jettyVersion,
+      "org.eclipse.jetty"      %  "jetty-servlet"      % jettyVersion,
+      "org.eclipse.jetty"      %  "jetty-webapp"       % jettyVersion
+    )
+  )
+  .dependsOn(core)
 
 lazy val json = project.in(file("json"))
   .settings(name := "scalatra3-json")
@@ -56,10 +68,10 @@ lazy val core = project.in(file("core"))
   .settings(
     name := "scalatra3-core",
     libraryDependencies ++= Seq(
-      "org.eclipse.jetty"      %  "jetty-server"       % jettyVersion,
-      "org.eclipse.jetty"      %  "jetty-servlet"      % jettyVersion,
-      "org.eclipse.jetty"      %  "jetty-webapp"       % jettyVersion,
-      "javax.servlet"          %  "javax.servlet-api"  % "3.1.0",
+//      "org.eclipse.jetty"      %  "jetty-server"       % jettyVersion,
+//      "org.eclipse.jetty"      %  "jetty-servlet"      % jettyVersion,
+//      "org.eclipse.jetty"      %  "jetty-webapp"       % jettyVersion,
+      "javax.servlet"          %  "javax.servlet-api"  % "3.1.0" % "provided",
       "org.scala-lang.modules" %% "scala-xml"          % "1.1.1",
       "org.specs2"             %% "specs2-core"        % Specs2Version % "test",
       "ch.qos.logback"         %  "logback-classic"    % LogbackVersion,
