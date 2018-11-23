@@ -35,7 +35,7 @@ object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport w
   get("/form"){
     <html>
       <body>
-        <h1>Scalatra3 Example</h1>
+        <h1>Form</h1>
         <form method="POST" action="/form">
           <input type="text" name="id"></input>
           <input type="password" name="pass"></input>
@@ -59,9 +59,6 @@ object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport w
 
   get("/upload"){
     <html>
-      <head>
-        <title>File upload</title>
-      </head>
       <body>
         <h1>File upload</h1>
         <form method="POST" action="/upload" enctype="multipart/form-data">
@@ -82,14 +79,31 @@ object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport w
   }
 
   get("/cookie") {
+    val previous = cookies.get("counter") match {
+      case Some(v) => v.toInt
+      case None    => 0
+    }
+    cookies.set("counter", (previous + 1).toString)
+    <html>
+      <body>
+        <h1>Cookie</h1>
+        <p>Hi, you have been on this page {previous} times already</p>
+      </body>
+    </html>
+  }
+
+  get("/session") {
     val previous = session.get("counter") match {
       case Some(v) => v.toInt
       case None    => 0
     }
     session.set("counter", (previous + 1).toString)
-    <p>
-      Hi, you have been on this page {previous} times already
-    </p>
+    <html>
+      <body>
+        <h1>Session</h1>
+        <p>Hi, you have been on this page {previous} times already</p>
+      </body>
+    </html>
   }
 
 //  get("/hello/:name"){
