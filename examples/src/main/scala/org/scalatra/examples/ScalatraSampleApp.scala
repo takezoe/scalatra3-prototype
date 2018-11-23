@@ -4,9 +4,10 @@ import org.scalatra._
 import org.scalatra.forms._
 import org.scalatra.i18n.I18nSupport
 import org.scalatra.launcher.ScalatraApp
+import org.scalatra.session.CookieSessionSupport
 import org.scalatra.twirl.TwirlSupport
 
-object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport with FileUploadSupport with TwirlSupport {
+object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport with FileUploadSupport with TwirlSupport with CookieSessionSupport {
 
   case class LoginForm(
     id: String,
@@ -81,11 +82,11 @@ object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport w
   }
 
   get("/cookie") {
-    val previous = cookies.get("counter") match {
-      case Some(v) =>  v.toInt
+    val previous = session.get("counter") match {
+      case Some(v) => v.toInt
       case None    => 0
     }
-    cookies.set("counter", (previous + 1).toString)
+    session.set("counter", (previous + 1).toString)
     <p>
       Hi, you have been on this page {previous} times already
     </p>

@@ -62,8 +62,6 @@ class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
     new Cookies(requestCookies)
   }
 
-  lazy val sessions: Sessions = new Sessions(underlying)
-
 }
 
 class Cookies(requestCookies: Map[String, String]) {
@@ -74,25 +72,3 @@ class Cookies(requestCookies: Map[String, String]) {
   def set(name: String, content: String): Unit = sweetCookies.put(name, content)
 
 }
-
-class Sessions(request: HttpServletRequest) {
-
-  private def getSession(): Option[HttpSession] = {
-    Option(request.getSession)
-  }
-
-  def get(name: String): Option[String] = {
-    getSession().flatMap { session =>
-      Option(session.getAttribute(name)).map(_.asInstanceOf[String])
-    }
-  }
-
-  def set(name: String, value: String): Unit = {
-    getSession() match {
-      case Some(session) => session.setAttribute(name, value)
-      case None => throw new ScalatraException("session is not available.")
-    }
-  }
-
-}
-
