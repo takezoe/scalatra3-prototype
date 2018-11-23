@@ -3,9 +3,10 @@ package org.scalatra.examples
 import org.scalatra._
 import org.scalatra.forms._
 import org.scalatra.i18n.I18nSupport
+import org.scalatra.launcher.ScalatraApp
 import org.scalatra.twirl.TwirlSupport
 
-class HelloController extends ScalatraBase with FormSupport with I18nSupport with TwirlSupport with FileUploadSupport {
+object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport with FileUploadSupport with TwirlSupport {
 
   case class LoginForm(
     id: String,
@@ -25,14 +26,16 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport wit
     println("** after **")
   }
 
+
   get("/"){
+    html.hello(new java.util.Date)
+  }
+
+  get("/form"){
     <html>
-      <head>
-        <title>Scalatra3 Example</title>
-      </head>
       <body>
         <h1>Scalatra3 Example</h1>
-        <form method="POST" action="/login">
+        <form method="POST" action="/form">
           <input type="text" name="id"></input>
           <input type="password" name="pass"></input>
           <input type="submit" value="Login"></input>
@@ -41,7 +44,7 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport wit
     </html>
   }
 
-  post("/login"){
+  post("/form"){
     validate(form)(
       (errors: Seq[(String, String)]) => {
         println(errors)
@@ -51,38 +54,6 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport wit
         Ok(s"Hello ${form.id}!")
       }
     )
-  }
-
-  get("/twirl"){
-    html.hello(new java.util.Date)
-  }
-
-  get("/hello/:name"){
-    s"Hello ${params("name")}!"
-  }
-
-  get("/test/*"){
-    val paths: Seq[String] = multiParams("splat")
-    Ok(
-      paths.map(x => s"<li>${x}</li>").mkString("<ul>", "\n", "</ul>"),
-      contentType = "text/html"
-    )
-  }
-
-  post("/test"){
-    println("** body **")
-    ActionResult(200, request.body, Map.empty)
-  }
-
-  get("/cookie") {
-    val previous = cookies.get("counter") match {
-      case Some(v) =>  v.toInt
-      case None    => 0
-    }
-    cookies.update("counter", (previous + 1).toString)
-    <p>
-      Hi, you have been on this page {previous} times already
-    </p>
   }
 
   get("/upload"){
@@ -95,20 +66,47 @@ class HelloController extends ScalatraBase with FormSupport with I18nSupport wit
         <form method="POST" action="/upload" enctype="multipart/form-data">
           <input type="text" name="fileName"></input>
           <input type="file" name="file"></input>
-          <input type="submit" value="Login"></input>
+          <input type="submit" value="Upload"></input>
         </form>
       </body>
     </html>
   }
 
   post("/upload"){
-    println(fileParams("fileName").value)
-    fileParams("file").file.map { file =>
-      Ok(file, "image/png")
+    fileParams.get("file").map { file =>
+      Ok(file.getInputStream, "image/png")
     }.getOrElse {
       BadRequest()
     }
   }
+
+  get("/cookie") {
+    val previous = cookies.get("counter") match {
+      case Some(v) =>  v.toInt
+      case None    => 0
+    }
+    cookies.set("counter", (previous + 1).toString)
+    <p>
+      Hi, you have been on this page {previous} times already
+    </p>
+  }
+
+//  get("/hello/:name"){
+//    s"Hello ${params("name")}!"
+//  }
+//
+//  get("/test/*"){
+//    val paths: Seq[String] = multiParams("splat")
+//    Ok(
+//      paths.map(x => s"<li>${x}</li>").mkString("<ul>", "\n", "</ul>"),
+//      contentType = "text/html"
+//    )
+//  }
+//
+//  post("/test"){
+//    println("** body **")
+//    request.body
+//  }
 
 }
 

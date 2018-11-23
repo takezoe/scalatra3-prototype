@@ -20,14 +20,26 @@ lazy val root = project.in(file("."))
   .settings(name := "scalatra3-root")
   .settings(buildSettings)
   .settings(noPublish)
-  .aggregate(core, forms, examples)
+  .aggregate(core, forms, launcher, examples)
 
 lazy val examples = project.in(file("examples"))
   .settings(name := "scalatra3-examples")
   .settings(buildSettings)
   .settings(noPublish)
-  .dependsOn(core, forms, twirl)
+  .dependsOn(core, forms, twirl, launcher)
   .enablePlugins(SbtTwirl)
+
+lazy val launcher = project.in(file("launcher"))
+  .settings(name := "scalatra3-launcher")
+  .settings(buildSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.eclipse.jetty"      %  "jetty-server"       % jettyVersion,
+      "org.eclipse.jetty"      %  "jetty-servlet"      % jettyVersion,
+      "org.eclipse.jetty"      %  "jetty-webapp"       % jettyVersion
+    )
+  )
+  .dependsOn(core)
 
 lazy val json = project.in(file("json"))
   .settings(name := "scalatra3-json")
@@ -49,18 +61,17 @@ lazy val twirl = project.in(file("twirl"))
   .settings(buildSettings)
   .dependsOn(core)
 
+val jettyVersion = "9.4.6.v20170531"
+
 lazy val core = project.in(file("core"))
   .settings(buildSettings)
   .settings(
     name := "scalatra3-core",
     libraryDependencies ++= Seq(
-      "org.http4s"             %% "http4s-blaze-server" % Http4sVersion,
-      "org.http4s"             %% "http4s-circe"        % Http4sVersion,
-      "org.http4s"             %% "http4s-dsl"          % Http4sVersion,
-      "org.scala-lang.modules" %% "scala-xml"           % "1.1.1",
-      "org.specs2"             %% "specs2-core"         % Specs2Version % "test",
-      "ch.qos.logback"          % "logback-classic"     % LogbackVersion,
-      "org.apache.commons"      % "commons-email"       % "1.5",
-      "commons-io"              % "commons-io"          % "2.6"
+      "javax.servlet"          %  "javax.servlet-api"  % "3.1.0" % "provided",
+      "org.scala-lang.modules" %% "scala-xml"          % "1.1.1",
+      "org.specs2"             %% "specs2-core"        % Specs2Version % "test",
+      "ch.qos.logback"         %  "logback-classic"    % LogbackVersion,
+      "commons-fileupload"     %  "commons-fileupload" % "1.3.3"
     )
   )

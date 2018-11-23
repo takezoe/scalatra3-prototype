@@ -1,38 +1,36 @@
 package org.scalatra
 
-import cats.effect.IO
-import org.http4s._
+import java.io.{InputStream, OutputStream}
 
-case class StreamActionResult(
+import org.apache.commons.io.IOUtils
+
+import scala.util.Try
+
+/**
+ * The results of Action returned from Action#run().
+ * Scalatra renders the response using information stored in this object.
+ */
+case class ActionResult(
   status: Int,
-  body: EntityBody[IO],
+  body: Body,
   headers: Map[String, String],
-  contentType: String = null,
-  cookies: Seq[Cookie] = Nil
-){
-  def toResponse(): Response[IO] = {
-    val response = Response[IO](
-      status  = Status(status),
-      body    = body,
-      headers = Headers(
-        headers.toList.map { case (name, value) => Header(name, value) } ++
-          (if(contentType != null) List(Header("Content-Type", contentType)) else List.empty)
-      )
-    )
-    // Add bitter cookies
-    cookies.foldLeft(response){ case (response, cookie) =>
-      response.addCookie(cookie)
-    }
-  }
+  contentType: String
+)
+
+sealed trait Body {
+  def writeTo(out: OutputStream): Unit
 }
 
-object ActionResult {
-  def apply[T](status: Int, body: T, headers: Map[String, String], contentType: String = null)(implicit converter: ResultConverter[T]): StreamActionResult = {
-    val result = converter.convert(body)
-    if(contentType == null){
-      result.copy(status = status, headers = result.headers ++ headers)
-    } else {
-      result.copy(status = status, contentType = contentType, headers = result.headers ++ headers)
+case class ByteArrayBody(bytes: Array[Byte]) extends Body {
+  def writeTo(out: OutputStream): Unit = out.write(bytes)
+}
+
+case class InputStreamBody(in: InputStream) extends Body {
+  override def writeTo(out: OutputStream): Unit = {
+    try {
+      IOUtils.copy(in, out)
+    } finally {
+      Try { in.close() }
     }
   }
 }

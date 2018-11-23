@@ -2,9 +2,6 @@ package org.scalatra
 
 import java.io.{File, FileInputStream, InputStream}
 
-import cats.effect.IO
-import org.http4s.EmptyBody
-
 import scala.xml.Elem
 
 /**
@@ -13,7 +10,7 @@ import scala.xml.Elem
  * @tparam T the result type of action
  */
 trait ResultConverter[T]{
-  def convert(result: T): StreamActionResult
+  def convert(result: T): ActionResult
 }
 
 /**
@@ -21,11 +18,17 @@ trait ResultConverter[T]{
  */
 trait ResultConverters {
 
+  implicit object ActionResultResultConverter extends ResultConverter[ActionResult] {
+    def convert(result: ActionResult): ActionResult = {
+      result
+    }
+  }
+
   implicit object StringResultConverter extends ResultConverter[String] {
-    def convert(result: String): StreamActionResult = {
-      StreamActionResult(
+    def convert(result: String): ActionResult = {
+      new ActionResult(
         status = 200,
-        body = fs2.Stream(result.getBytes("UTF-8"): _*),
+        body = ByteArrayBody(result.getBytes("UTF-8")),
         contentType = "text/plain; charset=UTF-8",
         headers = Map.empty
       )
@@ -33,37 +36,32 @@ trait ResultConverters {
   }
 
   implicit object UnitResultConverter extends ResultConverter[Unit] {
-    def convert(result: Unit): StreamActionResult = {
-      StreamActionResult(
+    def convert(result: Unit): ActionResult = {
+      ActionResult(
         status = 200,
-        body = EmptyBody,
-        headers = Map.empty
+        body = ByteArrayBody(Array.empty),
+        contentType = null,
+        headers = Map.empty,
       )
     }
   }
 
   implicit object ByteArrayResultConverter extends ResultConverter[Array[Byte]] {
-    def convert(result: Array[Byte]): StreamActionResult = {
-      StreamActionResult(
+    def convert(result: Array[Byte]): ActionResult = {
+      ActionResult(
         status = 200,
-        body = fs2.Stream(result: _*),
+        body = ByteArrayBody(result),
         contentType = "application/octet-stream",
         headers = Map.empty
       )
     }
   }
 
-  implicit object ActionResultResultConverter extends ResultConverter[StreamActionResult] {
-    def convert(result: StreamActionResult): StreamActionResult = {
-      result
-    }
-  }
-
   implicit object ElemResultConverter extends ResultConverter[Elem] {
-    def convert(result: Elem): StreamActionResult = {
-      StreamActionResult(
+    def convert(result: Elem): ActionResult = {
+      ActionResult(
         status = 200,
-        body = fs2.Stream(result.toString().getBytes("UTF-8"): _*),
+        body = ByteArrayBody(result.toString().getBytes("UTF-8")),
         contentType = "text/html; charset=UTF-8",
         headers = Map.empty
       )
@@ -71,10 +69,10 @@ trait ResultConverters {
   }
 
   implicit object InputStreamResultConverter extends ResultConverter[InputStream] {
-    def convert(result: InputStream): StreamActionResult = {
-      StreamActionResult(
+    def convert(result: InputStream): ActionResult = {
+      ActionResult(
         status = 200,
-        body = fs2.io.readInputStream(IO.pure(result), 1024 * 8),
+        body = InputStreamBody(result),
         contentType = "application/octet-stream",
         headers = Map.empty
       )
@@ -82,10 +80,10 @@ trait ResultConverters {
   }
 
   implicit object FileResultConverter extends ResultConverter[File] {
-    def convert(result: File): StreamActionResult = {
-      StreamActionResult(
+    def convert(result: File): ActionResult = {
+      ActionResult(
         status = 200,
-        body = fs2.io.readInputStream(IO.pure(new FileInputStream(result): InputStream), 1024 * 8),
+        body = InputStreamBody(new FileInputStream(result)),
         contentType = "application/octet-stream", // TODO MIME type should be decided by filename
         headers = Map.empty // TODO Content-Disposition should be set?
       )
