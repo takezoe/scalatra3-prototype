@@ -25,7 +25,7 @@ trait CookieSessionSupport extends SessionSupport {
         StringUtil.splitFirst(CryptUtil.decrypt(cookie), ";") foreach {
           case (timestamp, content) =>
             if(timestamp.toLong * 1000 > System.currentTimeMillis() - (Expire * 60 * 1000)) {
-              JsonUtil.deserializeMap(content).foreach { case (name, value) => params.put(name, value) }
+              JsonUtil.deserialize[Map[String, Any]](content).foreach { case (name, value) => params.put(name, value.toString) }
             }
         }
       }
@@ -41,7 +41,7 @@ trait CookieSessionSupport extends SessionSupport {
     request.get(CookieSessionKey).foreach {
       case session: CookieSessions =>
         val currentTime = System.currentTimeMillis() / 1000
-        val content = currentTime + ";" + JsonUtil.serializeMap(session.params.toMap)
+        val content = currentTime + ";" + JsonUtil.serialize(session.params.toMap)
         cookies.set(CookieName, CryptUtil.crypt(content))
     }
   }

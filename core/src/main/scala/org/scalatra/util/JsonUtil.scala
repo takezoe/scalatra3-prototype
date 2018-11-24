@@ -3,17 +3,20 @@ package org.scalatra.util
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
+import scala.reflect.ClassTag
+
 object JsonUtil {
 
   private val mapper = new ObjectMapper
   mapper.registerModule(DefaultScalaModule)
 
-  def serializeMap(map: Map[String, String]): String = {
-    mapper.writeValueAsString(map)
+
+  def serialize(value: Any): String = {
+    mapper.writeValueAsString(value)
   }
 
-  def deserializeMap(json: String): Map[String, String] = {
-    mapper.readValue(json, classOf[Map[String, String]])
+  def deserialize[T](json: String)(implicit c: ClassTag[T]): T = {
+    mapper.readValue(json, c.runtimeClass.asInstanceOf[Class[T]])
   }
 
 }

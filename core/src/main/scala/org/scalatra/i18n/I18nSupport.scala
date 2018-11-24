@@ -69,13 +69,15 @@ trait I18nSupport { this: ScalatraBase =>
    *
    */
   private def resolveHttpLocale: Option[Locale] = {
-    (params.get(LocaleKey) match {
-      case Some(localeValue) =>
-        cookies.set(LocaleKey, localeValue)
-        Some(localeValue)
-      case _ =>
-        cookies.get(LocaleKey)
-    }).map(localeFromString(_)) orElse resolveHttpLocaleFromUserAgent
+//    (params.get(LocaleKey) match {
+//      case Some(localeValue) =>
+//        cookies.set(LocaleKey, localeValue)
+//        Some(localeValue)
+//      case _ =>
+//        cookies.get(LocaleKey)
+//    }).map(localeFromString(_)) orElse resolveHttpLocaleFromUserAgent
+
+    cookies.get(LocaleKey).map(localeFromString(_)) orElse resolveHttpLocaleFromUserAgent
   }
 
   /**

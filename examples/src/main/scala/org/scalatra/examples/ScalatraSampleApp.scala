@@ -6,8 +6,12 @@ import org.scalatra.i18n.I18nSupport
 import org.scalatra.launcher.ScalatraApp
 import org.scalatra.session.CookieSessionSupport
 import org.scalatra.twirl.TwirlSupport
+import org.scalatra.util.JsonUtil
 
 object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport with FileUploadSupport with TwirlSupport with CookieSessionSupport {
+
+  case class JsonForm(user: User)
+  case class User(name: String, mail: Seq[String])
 
   case class LoginForm(
     id: String,
@@ -18,6 +22,13 @@ object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport w
     "id"   -> label("Id", text(required, maxlength(10))),
     "pass" -> label("Password", text(required, maxlength(10)))
   )(LoginForm.apply)
+
+  val jsonForm = mapping(
+    "user" -> mapping(
+      "name" -> text(required),
+      "mail" -> list(text())
+    )(User.apply)
+  )(JsonForm.apply)
 
   before {
     println("** before **")
@@ -106,6 +117,23 @@ object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport w
     </html>
   }
 
+  post("/json"){
+    validateJson(jsonForm)(
+      (errors: Seq[(String, String)]) => {
+        BadRequest(
+          body = JsonUtil.serialize(errors),
+          contentType = "application/json"
+        )
+      },
+      (form: JsonForm) => {
+        BadRequest(
+          body = JsonUtil.serialize(form),
+          contentType = "application/json"
+        )
+      }
+    )
+  }
+
 //  get("/hello/:name"){
 //    s"Hello ${params("name")}!"
 //  }
@@ -118,10 +146,10 @@ object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport w
 //    )
 //  }
 //
-//  post("/test"){
-//    println("** body **")
-//    request.body
-//  }
+  post("/test"){
+    println("** body **")
+    request.body
+  }
 
 }
 
