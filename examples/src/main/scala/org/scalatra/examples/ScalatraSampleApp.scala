@@ -119,18 +119,10 @@ object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport w
 
   post("/json"){
     validateJson(jsonForm)(
-      (errors: Seq[(String, String)]) => {
-        BadRequest(
-          body = JsonUtil.serialize(errors),
-          contentType = "application/json"
-        )
-      },
-      (form: JsonForm) => {
-        BadRequest(
-          body = JsonUtil.serialize(form),
-          contentType = "application/json"
-        )
-      }
+      (errors: Seq[(String, String)]) =>
+        BadRequest(body = JsonUtil.serialize(errors), contentType = "application/json"),
+      (form: JsonForm) =>
+        BadRequest(body = JsonUtil.serialize(form), contentType = "application/json")
     )
   }
 
