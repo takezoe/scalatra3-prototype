@@ -68,10 +68,12 @@ lazy val core = project.in(file("core"))
   .settings(
     name := "scalatra3-core",
     libraryDependencies ++= Seq(
-      "javax.servlet"          %  "javax.servlet-api"  % "3.1.0" % "provided",
-      "org.scala-lang.modules" %% "scala-xml"          % "1.1.1",
-      "org.specs2"             %% "specs2-core"        % Specs2Version % "test",
-      "ch.qos.logback"         %  "logback-classic"    % LogbackVersion,
-      "commons-fileupload"     %  "commons-fileupload" % "1.3.3"
+      "javax.servlet"                %  "javax.servlet-api"    % "3.1.0" % "provided",
+      "org.scala-lang.modules"       %% "scala-xml"            % "1.1.1",
+      "commons-codec"                %  "commons-codec"        % "1.11",
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.7",
+      "org.specs2"                   %% "specs2-core"          % Specs2Version % "test",
+      "ch.qos.logback"               %  "logback-classic"      % LogbackVersion,
+      "commons-fileupload"           %  "commons-fileupload"   % "1.3.3"
     )
   )

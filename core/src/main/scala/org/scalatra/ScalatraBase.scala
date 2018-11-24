@@ -48,10 +48,6 @@ abstract class ScalatraBase extends ResultConverters {
     request.cookies
   }
 
-  protected def sessions: Sessions = {
-    request.sessions
-  }
-
   protected def before(f: => Unit): Unit = {
     val action = new Action(this, None, None, UnitResultConverter.convert(f))
     registerBeforeAction(action)
