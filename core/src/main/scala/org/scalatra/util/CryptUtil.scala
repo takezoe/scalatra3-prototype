@@ -8,10 +8,7 @@ import org.apache.commons.codec.binary.Hex
 
 object CryptUtil {
 
-  val CookieName = "sess"
-  val SecretKey = UUID.randomUUID().toString
-  val Expire = 60 // 60 minutes
-  val CookieSessionKey = "org.scalatra.session.CookieSessions"
+  val SecretKey = Option(System.getProperty("org.scalatra.util.CryptUtil.SecretKey")).getOrElse(UUID.randomUUID().toString)
 
   def crypt(content: String): String = {
     val cipher = Cipher.getInstance("AES")

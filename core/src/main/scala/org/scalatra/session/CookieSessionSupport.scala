@@ -7,8 +7,8 @@ import scala.collection.mutable.{Map => MutableMap}
 
 object CookieSessionSupport {
 
-  val CookieName = "sess"
-  val Expire = 60 // 60 minutes
+  val CookieName = Option(System.getProperty("org.scalatra.util.CookieSessionSupport.CookieName")).getOrElse("sess")
+  val Expire = Option(System.getProperty("org.scalatra.util.CookieSessionSupport.Expire")).getOrElse("60").toLong // 60min
   val CookieSessionKey = "org.scalatra.session.CookieSessions"
 
 }
