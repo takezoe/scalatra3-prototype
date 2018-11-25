@@ -6,9 +6,9 @@ import org.scalatra.util.{CryptUtil, JsonUtil, StringUtil}
 import scala.collection.mutable.{Map => MutableMap}
 
 object CookieSessionSupport {
-  private val CookieName = Option(System.getProperty("org.scalatra.session.CookieSessionSupport.cookieName")).getOrElse("sess")
-  private val Expire = Option(System.getProperty("org.scalatra.session.CookieSessionSupport.expire")).getOrElse("60").toLong // 60min
-  private val RequestAttributeSessionKey = "org.scalatra.session.CookieSessionSupport.session"
+  private val CookieName = Option(System.getProperty("org.scalatra.session.cookie.name")).getOrElse("sess")
+  private val Expire = Option(System.getProperty("org.scalatra.session.cookie.expire")).getOrElse("60").toLong // 60min
+  private val RequestAttributeSessionKey = "org.scalatra.session.cookie.session"
 }
 
 trait CookieSessionSupport extends SessionSupport {

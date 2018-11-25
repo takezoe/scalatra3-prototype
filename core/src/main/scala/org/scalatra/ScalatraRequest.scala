@@ -57,9 +57,11 @@ class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
   }
 
   lazy val cookies: Cookies = {
-    val requestCookies: Map[String, String] = underlying.getCookies.map { cookie =>
-      cookie.getName -> cookie.getValue
-    }.toMap
+    val requestCookies: Map[String, String] = Option(underlying.getCookies).map{
+      _.map { cookie =>
+        cookie.getName -> cookie.getValue
+      }.toMap
+    }.getOrElse(Map.empty)
     new Cookies(requestCookies)
   }
 

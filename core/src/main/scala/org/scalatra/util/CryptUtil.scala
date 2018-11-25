@@ -8,7 +8,7 @@ import org.apache.commons.codec.binary.Hex
 
 object CryptUtil {
 
-  val SecretKey = Option(System.getProperty("org.scalatra.util.CryptUtil.SecretKey")).getOrElse(UUID.randomUUID().toString)
+  val SecretKey = Option(System.getProperty("org.scalatra.secretKey")).getOrElse(UUID.randomUUID().toString)
 
   def crypt(content: String): String = {
     val cipher = Cipher.getInstance("AES")

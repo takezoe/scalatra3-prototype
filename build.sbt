@@ -26,7 +26,7 @@ lazy val examples = project.in(file("examples"))
   .settings(name := "scalatra3-examples")
   .settings(buildSettings)
   .settings(noPublish)
-  .dependsOn(core, forms, twirl, launcher)
+  .dependsOn(core, forms, twirl, playJson, launcher)
   .enablePlugins(SbtTwirl)
 
 lazy val launcher = project.in(file("launcher"))

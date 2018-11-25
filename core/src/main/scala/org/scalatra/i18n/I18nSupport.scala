@@ -7,8 +7,8 @@ import org.scalatra.{ScalatraBase, ScalatraException, ScalatraRequest}
 import sun.net.httpserver.HttpServerImpl
 
 object I18nSupport {
-  private val RequestAttributeLocaleKey = "org.scalatra.i18n.I18nSupport.locale"
-  private val RequestAttributeUserLocalesKey = "org.scalatra.i18n.I18nSupport.userLocales"
+  private val RequestAttributeLocaleKey = "org.scalatra.i18n.locale"
+  private val RequestAttributeUserLocalesKey = "org.scalatra.i18n.userLocales"
   private val RequestAttributeMessagesKey = "messages"
 }
 
@@ -69,13 +69,14 @@ trait I18nSupport { this: ScalatraBase =>
    *
    */
   private def resolveHttpLocale: Option[Locale] = {
-    (params.get(RequestAttributeLocaleKey) match {
-      case Some(localeValue) =>
-        cookies.set(RequestAttributeLocaleKey, localeValue)
-        Some(localeValue)
-      case _ =>
-        cookies.get(RequestAttributeLocaleKey)
-    }).map(localeFromString(_)) orElse resolveHttpLocaleFromUserAgent
+//    (params.get(RequestAttributeLocaleKey) match {
+//      case Some(localeValue) =>
+//        cookies.set(RequestAttributeLocaleKey, localeValue)
+//        Some(localeValue)
+//      case _ =>
+//        cookies.get(RequestAttributeLocaleKey)
+//    }).map(localeFromString(_)) orElse resolveHttpLocaleFromUserAgent
+    resolveHttpLocaleFromUserAgent
   }
 
   /**

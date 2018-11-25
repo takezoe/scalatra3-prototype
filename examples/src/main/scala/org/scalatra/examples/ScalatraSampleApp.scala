@@ -4,10 +4,14 @@ import org.scalatra._
 import org.scalatra.forms._
 import org.scalatra.i18n.I18nSupport
 import org.scalatra.launcher.ScalatraApp
+import org.scalatra.playjson.PlayJsonSupport
 import org.scalatra.session.CookieSessionSupport
 import org.scalatra.twirl.TwirlSupport
+import org.scalatra.playjson.Json
+import play.api.libs.json.{Json => PlayJson}
 
-object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport with FileUploadSupport with TwirlSupport with CookieSessionSupport {
+object ScalatraSampleApp extends ScalatraApp
+  with FormSupport with PlayJsonSupport with I18nSupport with FileUploadSupport with TwirlSupport with CookieSessionSupport {
 
   case class LoginForm(
     id: String,
@@ -18,6 +22,8 @@ object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport w
     "id"   -> label("Id", text(required, maxlength(10))),
     "pass" -> label("Password", text(required, maxlength(10)))
   )(LoginForm.apply)
+
+  implicit val loginFormFormat = PlayJson.format[LoginForm]
 
   before {
     println("** before **")
@@ -104,6 +110,16 @@ object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport w
         <p>Hi, you have been on this page {previous} times already</p>
       </body>
     </html>
+  }
+
+  post("/json"){
+    validateJson[LoginForm](
+      error => {
+        println(error)
+        BadRequest(Json(Map("error" -> error.toString)))
+      },
+      json => Ok(Json(json))
+    )
   }
 
 //  get("/hello/:name"){

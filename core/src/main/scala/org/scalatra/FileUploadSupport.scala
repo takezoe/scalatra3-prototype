@@ -6,8 +6,8 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload
 import scala.collection.JavaConverters._
 
 object FileUploadSupport {
-  private val FileParamsRequestKey: String = "org.scalatra.FileUploadSupport.fileParams"
-  private val FileMultiParamsRequestKey: String = "org.scalatra.FileUploadSupport.fileMultiParams"
+  private val FileParamsRequestKey = "org.scalatra.fileParams"
+  private val FileMultiParamsRequestKey = "org.scalatra.fileMultiParams"
 }
 
 trait FileUploadSupport { this: ScalatraBase =>

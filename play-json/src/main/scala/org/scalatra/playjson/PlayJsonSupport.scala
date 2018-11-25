@@ -6,19 +6,23 @@ import play.api.libs.json.{Json => PlayJson}
 
 
 object PlayJsonSupport {
-  private val RequestAttributeParsedBodyKey = "org.scalatra.playjson.PlayJsonSupport.parsedBody"
+  private val RequestAttributeParsedBodyKey = "org.scalatra.playjson.parsedBody"
 }
 
 trait PlayJsonSupport { self: ScalatraBase =>
   import PlayJsonSupport._
 
-  protected def validateJson[T, R1, R2](hasErrors: JsError => R1, success: T => R2)
-    (implicit errorsConverter: ResultConverter[R1], successConverter: ResultConverter[R2], reads: Reads[T]): ActionResult = {
-    parsedBody.validate[T] match {
-      case e: JsError      => errorsConverter.convert(hasErrors(e))
-      case s: JsSuccess[T] => successConverter.convert(success(s.value))
+  //object validateJson {
+    def validateJson[T] = new {
+      def apply[R1, R2](hasErrors: JsError => R1, success: T => R2)
+        (implicit errorsConverter: ResultConverter[R1], successConverter: ResultConverter[R2], reads: Reads[T]): ActionResult = {
+        parsedBody.validate[T] match {
+          case e: JsError      => errorsConverter.convert(hasErrors(e))
+          case s: JsSuccess[T] => successConverter.convert(success(s.value))
+        }
+      }
     }
-  }
+  //}
 
   def parsedBody: JsValue = {
     request.get(RequestAttributeParsedBodyKey).getOrElse {
