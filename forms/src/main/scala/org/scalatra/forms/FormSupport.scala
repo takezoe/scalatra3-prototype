@@ -4,8 +4,8 @@ import org.scalatra.i18n._
 import org.scalatra.{ActionResult, ResultConverter, ScalatraBase}
 
 object FormSupport {
-  private val RequestAttributeParamsKey = "org.scalatra.forms.FormSupport.params"
-  private val RequestAttributeErrorsKey = "org.scalatra.forms.FormSupport.errors"
+  private[forms] val RequestAttributeParamsKey = "org.scalatra.forms.FormSupport.params"
+  private[forms] val RequestAttributeErrorsKey = "org.scalatra.forms.FormSupport.errors"
 }
 
 trait FormSupport { self: ScalatraBase with I18nSupport =>

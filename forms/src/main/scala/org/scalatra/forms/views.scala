@@ -1,6 +1,7 @@
 package org.scalatra.forms
 
 import org.scalatra.ScalatraRequest
+import org.scalatra.forms.FormSupport._
 
 /**
  * Provides view helpers to render form elements.
