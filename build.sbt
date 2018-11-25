@@ -20,7 +20,7 @@ lazy val root = project.in(file("."))
   .settings(name := "scalatra3-root")
   .settings(buildSettings)
   .settings(noPublish)
-  .aggregate(core, forms, launcher, examples)
+  .aggregate(core, forms, playJson, launcher, examples)
 
 lazy val examples = project.in(file("examples"))
   .settings(name := "scalatra3-examples")
@@ -41,8 +41,13 @@ lazy val launcher = project.in(file("launcher"))
   )
   .dependsOn(core)
 
-lazy val json = project.in(file("json"))
-  .settings(name := "scalatra3-json")
+lazy val playJson = project.in(file("play-json"))
+  .settings(
+    name := "scalatra3-play-json",
+    libraryDependencies ++= Seq(
+      "com.typesafe.play" %% "play-json" % "2.6.10"
+    )
+  )
   .settings(buildSettings)
   .dependsOn(core)
 
