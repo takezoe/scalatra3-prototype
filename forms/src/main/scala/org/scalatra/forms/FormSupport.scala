@@ -2,7 +2,7 @@ package org.scalatra.forms
 
 import org.scalatra.i18n._
 import org.scalatra.util.JsonUtil
-import org.scalatra.{ActionResult, ResultConverter, ScalatraBase}
+import org.scalatra.{ActionResult, ByteArrayBody, ResultConverter, ScalatraBase}
 
 import scala.collection.mutable.{Map => MutableMap}
 
@@ -15,7 +15,7 @@ trait FormSupport { self: ScalatraBase with I18nSupport =>
 
     val errors = form.validate("", params, messages)
     if (errors.isEmpty) {
-      successConverter.convert(success(form.convert("", params, messages)))
+      successConverter.convert(success(form.read("", params, messages)))
     } else {
       request.set(RequestAttributeErrorsKey, errors)
       errorsConverter.convert(hasErrors(errors))
@@ -33,7 +33,7 @@ trait FormSupport { self: ScalatraBase with I18nSupport =>
 
     val errors = form.validate("", params, messages)
     if (errors.isEmpty) {
-      successConverter.convert(success(form.convert("", params, messages)))
+      successConverter.convert(success(form.read("", params, messages)))
     } else {
       request.set(RequestAttributeErrorsKey, errors)
       errorsConverter.convert(hasErrors(errors))
@@ -50,7 +50,7 @@ trait FormSupport { self: ScalatraBase with I18nSupport =>
         case x: List[_] => {
           processJson(x.zipWithIndex.map { case (value, i) => name + "[" + i + "]" -> value }.toMap, map, key)
         }
-        case x: Map[String,Any] => {
+        case x: Map[String ,Any] @unchecked => {
           processJson(x, map, key + name + ".")
         }
       }
@@ -63,6 +63,17 @@ trait FormSupport { self: ScalatraBase with I18nSupport =>
       case None         => Seq(value)
     }
     map.put(key, newValue)
+  }
+
+  implicit object JsonResultConverter extends ResultConverter[Json] {
+    def convert(result: Json): ActionResult = {
+      ActionResult(
+        status = 200,
+        body = ByteArrayBody(result.value.getBytes("UTF-8")),
+        contentType = "application/json",
+        headers = Map.empty
+      )
+    }
   }
 
 }

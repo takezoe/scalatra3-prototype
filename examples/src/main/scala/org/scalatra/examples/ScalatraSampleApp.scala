@@ -6,7 +6,6 @@ import org.scalatra.i18n.I18nSupport
 import org.scalatra.launcher.ScalatraApp
 import org.scalatra.session.CookieSessionSupport
 import org.scalatra.twirl.TwirlSupport
-import org.scalatra.util.JsonUtil
 
 object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport with FileUploadSupport with TwirlSupport with CookieSessionSupport {
 
@@ -21,14 +20,14 @@ object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport w
   val form = mapping(
     "id"   -> label("Id", text(required, maxlength(10))),
     "pass" -> label("Password", text(required, maxlength(10)))
-  )(LoginForm.apply)
+  )(LoginForm.apply _)(LoginForm.unapply _)
 
   val jsonForm = mapping(
     "user" -> mapping(
       "name" -> text(required),
       "mail" -> list(text())
-    )(User.apply)
-  )(JsonForm.apply)
+    )(User.apply _)(User.unapply _)
+  )(JsonForm.apply _)(JsonForm.unapply _)
 
   before {
     println("** before **")
@@ -120,9 +119,9 @@ object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport w
   post("/json"){
     validateJson(jsonForm)(
       (errors: Seq[(String, String)]) =>
-        BadRequest(body = JsonUtil.serialize(errors), contentType = "application/json"),
-      (form: JsonForm) =>
-        BadRequest(body = JsonUtil.serialize(form), contentType = "application/json")
+        BadRequest(Json(Map("errors" -> errors))),
+      (json: JsonForm) =>
+        Ok(Json(json, jsonForm))
     )
   }
 
