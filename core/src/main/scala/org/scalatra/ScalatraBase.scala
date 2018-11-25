@@ -5,8 +5,8 @@ import scala.util.DynamicVariable
 import scala.collection.JavaConverters._
 
 object ScalatraBase {
-  private val ParamsRequestKey: String = "org.scalatra.ScalatraBase.params"
-  private val MultiParamsRequestKey: String = "org.scalatra.ScalatraBase.multiParams"
+  private[scalatra] val RequestAttributeParamsKey: String = "org.scalatra.ScalatraBase.params"
+  private[scalatra] val RequestAttributeMultiParamsKey: String = "org.scalatra.ScalatraBase.multiParams"
 }
 
 abstract class ScalatraBase extends ResultConverters {
@@ -27,19 +27,19 @@ abstract class ScalatraBase extends ResultConverters {
   }
 
   protected def params: Map[String, String] = {
-    request.get(ParamsRequestKey).getOrElse {
+    request.get(RequestAttributeParamsKey).getOrElse {
       val params = multiParams.map { case (name, values) => name -> values.head }
-      request.set(ParamsRequestKey, params)
+      request.set(RequestAttributeParamsKey, params)
       params
     }.asInstanceOf[Map[String, String]]
   }
 
   protected def multiParams: Map[String, Seq[String]] = {
-    request.get(MultiParamsRequestKey).getOrElse {
+    request.get(RequestAttributeMultiParamsKey).getOrElse {
       val params = request.underlying.getParameterNames.asScala.map { name =>
         name -> request.underlying.getParameterValues(name).toSeq
       }.toMap ++ pathParamHolder.value
-      request.set(MultiParamsRequestKey, params)
+      request.set(RequestAttributeMultiParamsKey, params)
       params
     }.asInstanceOf[Map[String, Seq[String]]]
   }
