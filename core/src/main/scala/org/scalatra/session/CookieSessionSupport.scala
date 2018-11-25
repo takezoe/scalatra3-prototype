@@ -6,11 +6,9 @@ import org.scalatra.util.{CryptUtil, JsonUtil, StringUtil}
 import scala.collection.mutable.{Map => MutableMap}
 
 object CookieSessionSupport {
-
-  val CookieName = Option(System.getProperty("org.scalatra.util.CookieSessionSupport.CookieName")).getOrElse("sess")
-  val Expire = Option(System.getProperty("org.scalatra.util.CookieSessionSupport.Expire")).getOrElse("60").toLong // 60min
-  val CookieSessionKey = "org.scalatra.session.CookieSessions"
-
+  private val CookieName = Option(System.getProperty("org.scalatra.session.CookieSessionSupport.cookieName")).getOrElse("sess")
+  private val Expire = Option(System.getProperty("org.scalatra.session.CookieSessionSupport.expire")).getOrElse("60").toLong // 60min
+  private val RequestAttributeSessionKey = "org.scalatra.session.CookieSessionSupport.session"
 }
 
 trait CookieSessionSupport extends SessionSupport {
@@ -18,7 +16,7 @@ trait CookieSessionSupport extends SessionSupport {
   import CookieSessionSupport._
 
   override protected def session: ScalatraSession = {
-    request.get(CookieSessionKey).getOrElse {
+    request.get(RequestAttributeSessionKey).getOrElse {
       val params = MutableMap[String, String]()
 
       request.cookies.get(CookieName).foreach { cookie =>
@@ -31,14 +29,14 @@ trait CookieSessionSupport extends SessionSupport {
       }
 
       val sessions = new CookieSessions(params)
-      request.set(CookieSessionKey, sessions)
+      request.set(RequestAttributeSessionKey, sessions)
       sessions
 
     }.asInstanceOf[CookieSessions]
   }
 
   after {
-    request.get(CookieSessionKey).foreach {
+    request.get(RequestAttributeSessionKey).foreach {
       case session: CookieSessions =>
         val currentTime = System.currentTimeMillis() / 1000
         val content = currentTime + ";" + JsonUtil.serializeMap(session.params.toMap)

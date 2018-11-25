@@ -7,9 +7,9 @@ import org.scalatra.{ScalatraBase, ScalatraException, ScalatraRequest}
 import sun.net.httpserver.HttpServerImpl
 
 object I18nSupport {
-  val LocaleKey: String = "org.scalatra.i18n.locale"
-  val UserLocalesKey: String = "org.scalatra.i18n.userLocales"
-  val MessagesKey: String = "messages"
+  private val RequestAttributeLocaleKey = "org.scalatra.i18n.I18nSupport.locale"
+  private val RequestAttributeUserLocalesKey = "org.scalatra.i18n.I18nSupport.userLocales"
+  private val RequestAttributeMessagesKey = "messages"
 }
 
 trait I18nSupport { this: ScalatraBase =>
@@ -17,22 +17,22 @@ trait I18nSupport { this: ScalatraBase =>
   import org.scalatra.i18n.I18nSupport._
 
   before {
-    request.set(LocaleKey, resolveLocale)
-    request.set(MessagesKey, provideMessages(locale))
+    request.set(RequestAttributeLocaleKey, resolveLocale)
+    request.set(RequestAttributeMessagesKey, provideMessages(locale))
   }
 
   def locale(implicit request: ScalatraRequest): Locale = {
     if (request == null) {
       throw new ScalatraException("There needs to be a request in scope to call locale")
     }
-    request.get(LocaleKey).map(_.asInstanceOf[Locale]).orNull
+    request.get(RequestAttributeLocaleKey).map(_.asInstanceOf[Locale]).orNull
   }
 
   def userLocales(implicit request: ScalatraRequest): Array[Locale] = {
     if (request == null) {
       throw new ScalatraException("There needs to be a request in scope to call userLocales")
     }
-    request.get(UserLocalesKey).map(_.asInstanceOf[Array[Locale]]).orNull
+    request.get(RequestAttributeUserLocalesKey).map(_.asInstanceOf[Array[Locale]]).orNull
   }
 
   def messages(key: String)(implicit request: ScalatraRequest): String = messages(request)(key)
@@ -41,7 +41,7 @@ trait I18nSupport { this: ScalatraBase =>
     if (request == null) {
       new ScalatraException("There needs to be a request in scope to call messages")
     }
-    request.get(MessagesKey).map(_.asInstanceOf[Messages]).orNull
+    request.get(RequestAttributeMessagesKey).map(_.asInstanceOf[Messages]).orNull
   }
 
   /**
@@ -69,12 +69,12 @@ trait I18nSupport { this: ScalatraBase =>
    *
    */
   private def resolveHttpLocale: Option[Locale] = {
-    (params.get(LocaleKey) match {
+    (params.get(RequestAttributeLocaleKey) match {
       case Some(localeValue) =>
-        cookies.set(LocaleKey, localeValue)
+        cookies.set(RequestAttributeLocaleKey, localeValue)
         Some(localeValue)
       case _ =>
-        cookies.get(LocaleKey)
+        cookies.get(RequestAttributeLocaleKey)
     }).map(localeFromString(_)) orElse resolveHttpLocaleFromUserAgent
   }
 
@@ -104,7 +104,7 @@ trait I18nSupport { this: ScalatraBase =>
         }
       })
       // save all found locales for later user
-      request.set(UserLocalesKey, locales)
+      request.set(RequestAttributeUserLocalesKey, locales)
       // We assume that all accept-languages are stored in order of quality
       // (so first language is preferred)
       locales.head

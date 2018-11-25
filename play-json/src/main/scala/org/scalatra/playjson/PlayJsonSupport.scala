@@ -6,7 +6,7 @@ import play.api.libs.json.{Json => PlayJson}
 
 
 object PlayJsonSupport {
-  val ParsedBodyKey = "org.scalatra.playjson.PlayJsonSupport.parsedBody"
+  private val RequestAttributeParsedBodyKey = "org.scalatra.playjson.PlayJsonSupport.parsedBody"
 }
 
 trait PlayJsonSupport { self: ScalatraBase =>
@@ -21,9 +21,9 @@ trait PlayJsonSupport { self: ScalatraBase =>
   }
 
   def parsedBody: JsValue = {
-    request.get(ParsedBodyKey).getOrElse {
+    request.get(RequestAttributeParsedBodyKey).getOrElse {
       val json = PlayJson.parse(request.body)
-      request.set(ParsedBodyKey, json)
+      request.set(RequestAttributeParsedBodyKey, json)
       json
     }.asInstanceOf[JsValue]
   }
