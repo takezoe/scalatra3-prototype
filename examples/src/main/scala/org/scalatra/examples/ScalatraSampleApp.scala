@@ -7,7 +7,8 @@ import org.scalatra.launcher.ScalatraApp
 import org.scalatra.session.CookieSessionSupport
 import org.scalatra.twirl.TwirlSupport
 
-object ScalatraSampleApp extends ScalatraApp with FormSupport with I18nSupport with FileUploadSupport with TwirlSupport with CookieSessionSupport {
+object ScalatraSampleApp extends ScalatraApp
+  with FormSupport with JsonFormSupport with I18nSupport with FileUploadSupport with TwirlSupport with CookieSessionSupport {
 
   case class JsonForm(user: User)
   case class User(name: String, mail: Seq[String])
