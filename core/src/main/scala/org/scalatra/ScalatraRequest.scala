@@ -48,6 +48,8 @@ class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
     }.toMap
   }
 
+  lazy val method = underlying.getMethod
+
   def inputStream: InputStream = {
     if(cachedBody != null) {
       new ByteArrayInputStream(cachedBody)
