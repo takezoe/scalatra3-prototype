@@ -7,6 +7,7 @@ import org.apache.commons.io.IOUtils
 import org.scalatra.util.StringUtils
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.TreeMap
 
 /**
  * A wrapper of HttpServletRequest
@@ -43,12 +44,14 @@ class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
   }
 
   lazy val headers: Map[String, String] = {
-    underlying.getHeaderNames.asScala.map { name =>
-      name -> underlying.getHeader(name)
-    }.toMap
+    TreeMap[String, String](
+      underlying.getHeaderNames.asScala.map { name =>
+        name -> underlying.getHeader(name)
+      }.toSeq: _*
+    )(Ordering.by(_.toLowerCase))
   }
 
-  lazy val requestMethod = underlying.getMethod // TODO Use typed model
+  lazy val requestMethod: HttpMethod = HttpMethod(underlying.getMethod)
 
   def inputStream: InputStream = {
     if(cachedBody != null) {
