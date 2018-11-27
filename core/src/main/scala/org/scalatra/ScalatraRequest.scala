@@ -48,7 +48,7 @@ class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
     }.toMap
   }
 
-  lazy val method = underlying.getMethod
+  lazy val requestMethod = underlying.getMethod // TODO Use typed model
 
   def inputStream: InputStream = {
     if(cachedBody != null) {

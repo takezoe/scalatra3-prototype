@@ -1,8 +1,9 @@
 package org.scalatra
 
+import org.scalatra.util.StringUtil
+
 import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
-import scala.collection.JavaConverters._
 
 object ScalatraBase {
   private[scalatra] val RequestAttributeParamsKey = "org.scalatra.params"
@@ -36,12 +37,31 @@ abstract class ScalatraBase extends ResultConverters {
 
   protected def multiParams: Map[String, Seq[String]] = {
     request.get(RequestAttributeMultiParamsKey).getOrElse {
-      val params = request.underlying.getParameterNames.asScala.map { name =>
-        name -> request.underlying.getParameterValues(name).toSeq
-      }.toMap ++ pathParamHolder.value
+      // TODO How to determine a charset for url decoding?
+      val queryParams = parseQueryParams(request.queryString)
+
+      val bodyParams = if(request.headers.get("Content-Type").exists(_.toUpperCase.split(";")(0) == "APPLICATION/X-WWW-FORM-URLENCODED")){
+        parseQueryParams(request.body)
+      } else Map.empty
+
+      val params = queryParams ++ bodyParams ++ pathParamHolder.value
+
       request.set(RequestAttributeMultiParamsKey, params)
       params
     }.asInstanceOf[Map[String, Seq[String]]]
+  }
+
+  private def parseQueryParams(queryString: String): Map[String, Seq[String]] = {
+    if(queryString != null){
+      queryString.split("&").flatMap { pair =>
+        pair.split("=") match {
+          case Array(key, value) => Some(StringUtil.urlDecode(key) -> StringUtil.urlDecode(value))
+          case _ => None
+        }
+      }.groupBy(_._1).map { case (key, values) =>
+        key -> values.map(_._2).toSeq
+      }
+    } else Map.empty
   }
 
   protected def cookies: Cookies = {
