@@ -1,8 +1,6 @@
 package org.scalatra.util
 
-import java.net.URLDecoder
-
-object StringUtil {
+object StringUtils {
 
   def splitFirst(content: String, delimiter: String): Option[(String, String)] = {
     val i = content.indexOf(delimiter)
@@ -11,11 +9,6 @@ object StringUtil {
     } else {
       None
     }
-  }
-
-  // TODO Use Scalatra's UrlCodingUtils?
-  def urlDecode(value: String): String = {
-    URLDecoder.decode(value.replace('+', ' '), "UTF-8")
   }
 
 }

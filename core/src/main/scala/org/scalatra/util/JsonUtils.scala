@@ -3,7 +3,7 @@ package org.scalatra.util
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
-object JsonUtil {
+object JsonUtils {
 
   private val mapper = new ObjectMapper
   mapper.registerModule(DefaultScalaModule)

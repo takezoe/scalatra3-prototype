@@ -1,7 +1,7 @@
 package org.scalatra.session
 
 import org.scalatra.ScalatraBase
-import org.scalatra.util.{CryptUtil, JsonUtil, StringUtil}
+import org.scalatra.util.{CryptUtils, JsonUtils, StringUtils}
 
 import scala.collection.mutable.{Map => MutableMap}
 
@@ -20,10 +20,10 @@ trait CookieSessionSupport extends SessionSupport {
       val params = MutableMap[String, String]()
 
       request.cookies.get(CookieName).foreach { cookie =>
-        StringUtil.splitFirst(CryptUtil.decrypt(cookie), ";") foreach {
+        StringUtils.splitFirst(CryptUtils.decrypt(cookie), ";") foreach {
           case (timestamp, content) =>
             if(timestamp.toLong * 1000 > System.currentTimeMillis() - (Expire * 60 * 1000)) {
-              JsonUtil.deserializeMap(content).foreach { case (name, value) => params.put(name, value) }
+              JsonUtils.deserializeMap(content).foreach { case (name, value) => params.put(name, value) }
             }
         }
       }
@@ -39,8 +39,8 @@ trait CookieSessionSupport extends SessionSupport {
     request.get(RequestAttributeSessionKey).foreach {
       case session: CookieSessions =>
         val currentTime = System.currentTimeMillis() / 1000
-        val content = currentTime + ";" + JsonUtil.serializeMap(session.params.toMap)
-        cookies.set(CookieName, CryptUtil.crypt(content))
+        val content = currentTime + ";" + JsonUtils.serializeMap(session.params.toMap)
+        cookies.set(CookieName, CryptUtils.crypt(content))
     }
   }
 }

@@ -1,6 +1,8 @@
 package org.scalatra
 
-import org.scalatra.util.StringUtil
+import java.nio.charset.StandardCharsets
+
+import org.scalatra.util.UrlCodingUtils
 
 import scala.collection.mutable.ListBuffer
 import scala.util.DynamicVariable
@@ -55,7 +57,10 @@ abstract class ScalatraBase extends ResultConverters {
     if(queryString != null){
       queryString.split("&").flatMap { pair =>
         pair.split("=") match {
-          case Array(key, value) => Some(StringUtil.urlDecode(key) -> StringUtil.urlDecode(value))
+          case Array(key, value) => Some((
+            UrlCodingUtils.urlDecode(key, StandardCharsets.UTF_8, plusIsSpace = true, skip = Set.empty[Int]),
+            UrlCodingUtils.urlDecode(value, StandardCharsets.UTF_8, plusIsSpace = true, skip = Set.empty[Int])
+          ))
           case _ => None
         }
       }.groupBy(_._1).map { case (key, values) =>

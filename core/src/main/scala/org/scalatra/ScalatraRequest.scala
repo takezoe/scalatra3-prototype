@@ -4,7 +4,7 @@ import java.io.{ByteArrayInputStream, InputStream}
 
 import javax.servlet.http.{HttpServletRequest, HttpSession}
 import org.apache.commons.io.IOUtils
-import org.scalatra.util.StringUtil
+import org.scalatra.util.StringUtils
 
 import scala.collection.JavaConverters._
 
@@ -29,7 +29,7 @@ class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
 
   lazy val body: String = {
     createBodyCache()
-    val charset = StringUtil.splitFirst(underlying.getContentType, ";").map(_._2).getOrElse("UTF-8")
+    val charset = StringUtils.splitFirst(underlying.getContentType, ";").map(_._2).getOrElse("UTF-8")
     new String(cachedBody, charset)
   }
 
