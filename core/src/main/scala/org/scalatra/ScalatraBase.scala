@@ -1,6 +1,7 @@
 package org.scalatra
 
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicReference
 
 import org.scalatra.util.UrlCodingUtils
 
@@ -12,7 +13,12 @@ object ScalatraBase {
   private[scalatra] val RequestAttributeMultiParamsKey = "org.scalatra.multiParams"
 }
 
-abstract class ScalatraBase extends ResultConverters {
+trait Initializable {
+  def init(config: Map[String, String]): Unit = {
+  }
+}
+
+abstract class ScalatraBase extends ResultConverters with Initializable {
   import ScalatraBase._
 
   private[scalatra] val beforeActions = new ListBuffer[Action[_]]()
@@ -20,6 +26,7 @@ abstract class ScalatraBase extends ResultConverters {
   private[scalatra] val afterActions  = new ListBuffer[Action[_]]()
 
   private[scalatra] val requestHolder   = new DynamicVariable[ScalatraRequest](null)
+  private[scalatra] val responseHolder  = new DynamicVariable[ScalatraResponse](null)
   private[scalatra] val pathParamHolder = new DynamicVariable[Map[String, Seq[String]]](null)
 
   protected implicit def request: ScalatraRequest = {
@@ -27,6 +34,13 @@ abstract class ScalatraBase extends ResultConverters {
       throw new ScalatraException("There needs to be a request in scope to call locale")
     }
     requestHolder.value
+  }
+
+  protected implicit def response: ScalatraResponse = {
+    if(responseHolder.value == null){
+      throw new ScalatraException("There needs to be a response in scope to call locale")
+    }
+    responseHolder.value
   }
 
   protected def params: Map[String, String] = {
@@ -150,4 +164,5 @@ abstract class ScalatraBase extends ResultConverters {
   protected def registerAfterAction(action: Action[_]): Unit = {
     afterActions += action
   }
+
 }

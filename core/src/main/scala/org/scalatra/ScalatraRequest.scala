@@ -30,7 +30,9 @@ class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
 
   lazy val body: String = {
     createBodyCache()
-    val charset = StringUtils.splitFirst(underlying.getContentType, ";").map(_._2).getOrElse("UTF-8")
+    val charset = StringUtils.blankOption(underlying.getContentType).flatMap { contentType =>
+      StringUtils.splitFirst(contentType, ";").map(_._2)
+    }.getOrElse("UTF-8")
     new String(cachedBody, charset)
   }
 
@@ -43,12 +45,13 @@ class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
     if(length < 0) None else Some(length)
   }
 
-  lazy val headers: Map[String, String] = {
-    TreeMap[String, String](
+  lazy val headers: RequestHeaders = {
+    val headers = TreeMap[String, String](
       underlying.getHeaderNames.asScala.map { name =>
         name -> underlying.getHeader(name)
       }.toSeq: _*
     )(Ordering.by(_.toLowerCase))
+    new RequestHeaders(headers)
   }
 
   lazy val requestMethod: HttpMethod = HttpMethod(underlying.getMethod)
@@ -72,11 +75,17 @@ class ScalatraRequest(private[scalatra] val underlying: HttpServletRequest){
 
 }
 
+class RequestHeaders(headers: TreeMap[String, String]){
+  def get(name: String): Option[String] = headers.get(name)
+  def getOrElse(name: String, defaultValue: => String): String = get(name).getOrElse(defaultValue)
+  def apply(name: String): String = headers(name)
+  def keys: Iterable[String] = headers.keys
+}
+
 class Cookies(requestCookies: Map[String, String]) {
 
   private[scalatra] val sweetCookies = scala.collection.mutable.Map[String, String]()
 
   def get(name: String): Option[String] = sweetCookies.get(name).orElse(requestCookies.get(name))
   def set(name: String, content: String): Unit = sweetCookies.put(name, content)
-
 }

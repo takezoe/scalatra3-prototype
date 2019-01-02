@@ -11,7 +11,8 @@ import org.scalatra.playjson.Json
 import play.api.libs.json.{Json => PlayJson}
 
 object ScalatraSampleApp extends ScalatraApp
-  with FormSupport with PlayJsonSupport with I18nSupport with FileUploadSupport with TwirlSupport with CookieSessionSupport {
+  with FormSupport with PlayJsonSupport with I18nSupport with FileUploadSupport with TwirlSupport with CookieSessionSupport
+  with CorsSupport {
 
   case class LoginForm(
     id: String,

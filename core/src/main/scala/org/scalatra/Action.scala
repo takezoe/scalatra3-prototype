@@ -75,13 +75,15 @@ class Action[T](instance: ScalatraBase, path: Option[String], method: Option[Met
    * @throws HaltException when halt() is called in the action
    * @throws PassException when pass() is called in the action
    */
-  def run(request: ScalatraRequest, pathParams: Map[String, Seq[String]]): ActionResult = {
+  def run(request: ScalatraRequest, response: ScalatraResponse, pathParams: Map[String, Seq[String]]): ActionResult = {
     request.underlying.removeAttribute(ScalatraBase.RequestAttributeParamsKey)
     request.underlying.removeAttribute(ScalatraBase.RequestAttributeMultiParamsKey)
 
     instance.requestHolder.withValue(request){
-      instance.pathParamHolder.withValue(pathParams){
-        f
+      instance.responseHolder.withValue(response){
+        instance.pathParamHolder.withValue(pathParams){
+          f
+        }
       }
     }
   }
