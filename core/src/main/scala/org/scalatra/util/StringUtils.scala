@@ -11,4 +11,24 @@ object StringUtils {
     }
   }
 
+  def blankOption(str: String): Option[String] = {
+    str match {
+      case null           => None
+      case x if x.isEmpty => None
+      case x              => Some(x)
+    }
+  }
+
+  def isBlank(str: String): Boolean = {
+    str match {
+      case null           => true
+      case x if x.isEmpty => true
+      case x              => false
+    }
+  }
+
+  def nonBlank(str: String): Boolean = {
+    !isBlank(str)
+  }
+
 }
