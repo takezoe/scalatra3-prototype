@@ -12,17 +12,19 @@ object PlayJsonSupport {
 trait PlayJsonSupport { self: ScalatraBase =>
   import PlayJsonSupport._
 
-  //object validateJson {
-    def validateJson[T] = new {
-      def apply[R1, R2](hasErrors: JsError => R1, success: T => R2)
-        (implicit errorsConverter: ResultConverter[R1], successConverter: ResultConverter[R2], reads: Reads[T]): ActionResult = {
+  def validateJson[T] = new {
+    def apply[R1, R2](hasErrors: JsError => R1, success: T => R2)
+      (implicit errorsConverter: ResultConverter[R1], successConverter: ResultConverter[R2], reads: Reads[T]): ActionResult = {
+      try {
         parsedBody.validate[T] match {
           case e: JsError      => errorsConverter.convert(hasErrors(e))
           case s: JsSuccess[T] => successConverter.convert(success(s.value))
         }
+      } catch {
+        case e: Exception => errorsConverter.convert(hasErrors(JsError(e.toString)))
       }
     }
-  //}
+  }
 
   def parsedBody: JsValue = {
     request.get(RequestAttributeParsedBodyKey).getOrElse {
